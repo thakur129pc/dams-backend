@@ -1,0 +1,571 @@
+
+9/19/2024, 6:00:47 PM: ::1 POST /register {"username":"testing12345","password":"qadeer@12","fullName":"qadeer qadeer","phoneNumber":9652655378,"email":"q@gmail.com"} => 201  User registered successfully! 
+
+9/19/2024, 6:07:17 PM: ::1 POST /register {"username":"testing123345","password":"qadeer@12","fullName":"qadeer qadeer","phoneNumber":9652655378,"email":"q@gmail.com"} => 201  User registered successfully! 
+
+9/19/2024, 6:07:34 PM: ::1 POST /api/v1/mobileUser/uploadDocs {} => 500  Unexpected field 
+
+9/19/2024, 6:09:46 PM: ::1 POST /api/v1/mobileUser/uploadDocs {} => 500  Unexpected field 
+
+9/19/2024, 6:10:03 PM: ::1 POST /api/v1/mobileUser/uploadDocs {} => 500  Unexpected field 
+
+9/19/2024, 10:30:41 PM: ::1 POST /uploadDocs {"beneficiaries":[{"beneficiaryName":"karan","accountNumber":"545454545454","ifscCode":"sbin00998","confirmAccountNumber":"545454545454","aadhaarNumber":"987865652876","panCardNumber":"SDERT54567","remarks":"remarks by karan","isConsent":"true","panCard":"1234567890"},{"beneficiaryName":"Sona","accountNumber":"888888888888","ifscCode":"AXIS87878","confirmAccountNumber":"888888888888","aadhaarNumber":"987865654748","panCardNumber":"KIUYH8767F","remarks":"remarks by sona","isConsent":"true"}],"beneficiaryId":"66e18f0edc8c2fca8666b7f5"} => 200  Documents and beneficiary details uploaded successfully 
+
+9/19/2024, 10:35:15 PM: ::1 POST /uploadDocs {"beneficiaries":[{"beneficiaryName":"karan","accountNumber":"545454545454","ifscCode":"sbin00998","confirmAccountNumber":"545454545454","aadhaarNumber":"987865652876","panCardNumber":"SDERT54567","remarks":"remarks by karan","isConsent":"true","panCard":"1234567890"},{"beneficiaryName":"Sona","accountNumber":"888888888888","ifscCode":"AXIS87878","confirmAccountNumber":"888888888888","aadhaarNumber":"987865654748","panCardNumber":"KIUYH8767F","remarks":"remarks by sona","isConsent":"true"}],"beneficiaryId":"66e18f0edc8c2fca8666b7f5"}
+Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+=> 200  Documents and beneficiary details uploaded successfully
+
+9/19/2024, 10:45:16 PM: ::1 POST /uploadDocs {"beneficiaries":[{"beneficiaryName":"karan","accountNumber":"545454545454","ifscCode":"sbin00998","confirmAccountNumber":"545454545454","aadhaarNumber":"987865652876","panCardNumber":"SDERT54567","remarks":"remarks by karan","isConsent":"true","panCard":"1234567890"},{"beneficiaryName":"Sona","accountNumber":"888888888888","ifscCode":"AXIS87878","confirmAccountNumber":"888888888888","aadhaarNumber":"987865654748","panCardNumber":"KIUYH8767F","remarks":"remarks by sona","isConsent":"true"}],"beneficiaryId":"66e18f0edc8c2fca8666b7f5"}
+Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+=> 200  Documents and beneficiary details uploaded successfully.
+
+9/19/2024, 10:48:01 PM: ::1 POST /uploadDocs {"beneficiaries":[{"beneficiaryName":"karan","accountNumber":"545454545454","ifscCode":"sbin00998","confirmAccountNumber":"545454545454","aadhaarNumber":"987865652876","panCardNumber":"SDERT54567","remarks":"remarks by karan","isConsent":"true","panCard":"1234567890"},{"beneficiaryName":"Sona","accountNumber":"888888888888","ifscCode":"AXIS87878","confirmAccountNumber":"888888888888","aadhaarNumber":"987865654748","panCardNumber":"KIUYH8767F","remarks":"remarks by sona","isConsent":"true"}],"beneficiaryId":"66e18f0edc8c2fca8666b7f5"}
+Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+=> 200  Documents and beneficiary details uploaded successfully.
+
+9/19/2024, 10:48:35 PM: ::1 POST /uploadDocs {"beneficiaries":[{"beneficiaryName":"karan","accountNumber":"545454545454","ifscCode":"sbin00998","confirmAccountNumber":"545454545454","aadhaarNumber":"987865652876","panCardNumber":"SDERT54567","remarks":"remarks by karan","isConsent":"true","panCard":"1234567890"},{"beneficiaryName":"Sona","accountNumber":"888888888888","ifscCode":"AXIS87878","confirmAccountNumber":"888888888888","aadhaarNumber":"987865654748","panCardNumber":"KIUYH8767F","remarks":"remarks by sona","isConsent":"true"}],"beneficiaryId":"66e18f0edc8c2fca8666b7f5"}
+Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+=> 200  Documents and beneficiary details uploaded successfully.
+
+9/19/2024, 10:50:53 PM: ::1 POST /uploadDocs {"beneficiaries":[{"beneficiaryName":"karan","accountNumber":"545454545454","ifscCode":"sbin00998","confirmAccountNumber":"545454545454","aadhaarNumber":"987865652876","panCardNumber":"SDERT54567","remarks":"remarks by karan","isConsent":"true","panCard":"1234567890"},{"beneficiaryName":"Sona","accountNumber":"888888888888","ifscCode":"AXIS87878","confirmAccountNumber":"888888888888","aadhaarNumber":"987865654748","panCardNumber":"KIUYH8767F","remarks":"remarks by sona","isConsent":"true"}],"beneficiaryId":"66e18f0edc8c2fca8666b7f5"}
+Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+=> 400  Missing file for Land Indemnity Bond of beneficiary: karan
+
+9/19/2024, 10:54:31 PM: ::1 POST /uploadDocs {"beneficiaries":[{"beneficiaryName":"karan","accountNumber":"545454545454","ifscCode":"sbin00998","confirmAccountNumber":"545454545454","aadhaarNumber":"987865652876","panCardNumber":"SDERT54567","remarks":"remarks by karan","isConsent":"true","panCard":"1234567890"},{"beneficiaryName":"Sona","accountNumber":"888888888888","ifscCode":"AXIS87878","confirmAccountNumber":"888888888888","aadhaarNumber":"987865654748","panCardNumber":"KIUYH8767F","remarks":"remarks by sona","isConsent":"true"}],"beneficiaryId":"66e18f0edc8c2fca8666b7f5"}
+Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+=> 400  Missing files for beneficiaries
+
+9/19/2024, 10:58:15 PM: ::1 POST /uploadDocs {"beneficiaries":[{"beneficiaryName":"karan","accountNumber":"545454545454","ifscCode":"sbin00998","confirmAccountNumber":"545454545454","aadhaarNumber":"987865652876","panCardNumber":"SDERT54567","remarks":"remarks by karan","isConsent":"true","panCard":"1234567890"},{"beneficiaryName":"Sona","accountNumber":"888888888888","ifscCode":"AXIS87878","confirmAccountNumber":"888888888888","aadhaarNumber":"987865654748","panCardNumber":"KIUYH8767F","remarks":"remarks by sona","isConsent":"true"}],"beneficiaryId":"66e18f0edc8c2fca8666b7f5"}
+Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+=> 400  Missing files for beneficiaries
+
+9/19/2024, 10:58:57 PM: ::1 POST /uploadDocs {"beneficiaries":[{"beneficiaryName":"karan","accountNumber":"545454545454","ifscCode":"sbin00998","confirmAccountNumber":"545454545454","aadhaarNumber":"987865652876","panCardNumber":"SDERT54567","remarks":"remarks by karan","isConsent":"true","panCard":"1234567890"},{"beneficiaryName":"Sona","accountNumber":"888888888888","ifscCode":"AXIS87878","confirmAccountNumber":"888888888888","aadhaarNumber":"987865654748","panCardNumber":"KIUYH8767F","remarks":"remarks by sona","isConsent":"true"}],"beneficiaryId":"66e18f0edc8c2fca8666b7f5"}
+Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+=> 200  Documents and beneficiary details uploaded successfully.
+
+9/19/2024, 10:59:04 PM: ::1 POST /uploadDocs {"beneficiaries":[{"beneficiaryName":"karan","accountNumber":"545454545454","ifscCode":"sbin00998","confirmAccountNumber":"545454545454","aadhaarNumber":"987865652876","panCardNumber":"SDERT54567","remarks":"remarks by karan","isConsent":"true","panCard":"1234567890"},{"beneficiaryName":"Sona","accountNumber":"888888888888","ifscCode":"AXIS87878","confirmAccountNumber":"888888888888","aadhaarNumber":"987865654748","panCardNumber":"KIUYH8767F","remarks":"remarks by sona","isConsent":"true"}],"beneficiaryId":"66e18f0edc8c2fca8666b7f5"}
+Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+=> 200  Documents and beneficiary details uploaded successfully
+
+9/19/2024, 11:02:44 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+=> 200  Documents and beneficiary details uploaded successfully
+
+9/19/2024, 11:05:45 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 200  Documents and beneficiary details uploaded successfully
+
+9/19/2024, 11:15:27 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 200  Documents and beneficiary details uploaded successfully
+
+9/19/2024, 11:16:59 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 500  Error uploading documents
+
+9/19/2024, 11:17:56 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 400  Required document fields are missing in the request body.
+
+9/19/2024, 11:19:18 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 200  Documents and beneficiary details uploaded successfully
+
+9/19/2024, 11:22:42 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 400  Required document fields are missing: photo, landIndemnityBond, structureIndemnityBond, uploadAffidavit, aadhaarCard, panCard, chequeOrPassbook
+
+9/19/2024, 11:26:32 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 400  Required document fields are missing: photo, landIndemnityBond, structureIndemnityBond, uploadAffidavit, aadhaarCard, panCard, chequeOrPassbook
+
+9/19/2024, 11:27:30 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 400  Required document fields are missing: photo, landIndemnityBond, structureIndemnityBond, uploadAffidavit, aadhaarCard, panCard, chequeOrPassbook
+
+9/19/2024, 11:28:22 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 400  Required document fields are missing: photo, landIndemnityBond, structureIndemnityBond, uploadAffidavit, aadhaarCard, panCard, chequeOrPassbook
+
+9/19/2024, 11:28:42 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["photo.jpeg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 400  Required document fields are missing: photo, landIndemnityBond, structureIndemnityBond, uploadAffidavit, aadhaarCard, panCard, chequeOrPassbook
+
+9/19/2024, 11:29:09 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["kk.jpg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["kk.jpg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 400  Required document fields are missing: photo, landIndemnityBond, structureIndemnityBond, uploadAffidavit, aadhaarCard, panCard, chequeOrPassbook
+
+9/19/2024, 11:29:43 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["kk.jpg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["kk.jpg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 400  Required document fields are missing: photo, landIndemnityBond, structureIndemnityBond, uploadAffidavit, aadhaarCard, panCard, chequeOrPassbook
+
+9/19/2024, 11:29:56 PM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["kk.jpg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["kk.jpg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 400  Required document fields are missing: photo, landIndemnityBond, structureIndemnityBond, uploadAffidavit, aadhaarCard, panCard, chequeOrPassbook
+
+9/20/2024, 12:01:32 AM: ::1 POST /uploadDocs
+Beneficiary 0 Details:
+  Name: karan
+  Account Number: 545454545454
+  IFSC Code: sbin00998
+  Aadhaar Number: 987865652876
+  PAN Card Number: SDERT54567
+  Remarks: remarks by karan
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["kk.jpg"]}]
+Beneficiary 1 Details:
+  Name: Sona
+  Account Number: 888888888888
+  IFSC Code: AXIS87878
+  Aadhaar Number: 987865654748
+  PAN Card Number: KIUYH8767F
+  Remarks: remarks by sona
+  Is Consent: true
+  Files: [{"fieldName":"beneficiaries[0][photo]","fileName":["kk.jpg"]}]
+Missing file for photo of beneficiary: karan
+Missing file for landIndemnityBond of beneficiary: karan
+Missing file for structureIndemnityBond of beneficiary: karan
+Missing file for uploadAffidavit of beneficiary: karan
+Missing file for aadhaarCard of beneficiary: karan
+Missing file for panCard of beneficiary: karan
+Missing file for chequeOrPassbook of beneficiary: karan
+Missing file for photo of beneficiary: Sona
+Missing file for landIndemnityBond of beneficiary: Sona
+Missing file for structureIndemnityBond of beneficiary: Sona
+Missing file for uploadAffidavit of beneficiary: Sona
+Missing file for aadhaarCard of beneficiary: Sona
+Missing file for panCard of beneficiary: Sona
+Missing file for chequeOrPassbook of beneficiary: Sona
+=> 400  Required document fields are missing: photo, landIndemnityBond, structureIndemnityBond, uploadAffidavit, aadhaarCard, panCard, chequeOrPassbook
+
+9/20/2024, 12:01:38 AM: ::1 POST /api/v1/mobileUser/register
+=> 400  Username already exists!
+
+9/20/2024, 12:01:43 AM: ::1 POST /login
+=> 200  Login Successful
+
+9/20/2024, 12:06:32 AM: ::1 POST /uploadDocs {"beneficiaries":[{"beneficiaryName":"karan","accountNumber":"545454545454","ifscCode":"sbin00998","confirmAccountNumber":"545454545454","aadhaarNumber":"987865652876","panCardNumber":"SDERT54567","remarks":"remarks by karan","isConsent":"true","panCard":"1234567890"},{"beneficiaryName":"Sona","accountNumber":"888888888888","ifscCode":"AXIS87878","confirmAccountNumber":"888888888888","aadhaarNumber":"987865654748","panCardNumber":"KIUYH8767F","remarks":"remarks by sona","isConsent":"true"}],"beneficiaryId":"66e18f0edc8c2fca8666b7f5"} => 400  Required document fields are missing: photo, landIndemnityBond, structureIndemnityBond, uploadAffidavit, aadhaarCard, panCard, chequeOrPassbook 
+
+9/20/2024, 12:11:18 AM: ::1 POST /login {"username":"Qadeer123","password":"qadeer@12"} => 200  Login Successful 
+
+9/20/2024, 12:11:39 AM: ::1 POST /uploadDocs {"beneficiaries":[{"beneficiaryName":"karan","accountNumber":"545454545454","ifscCode":"sbin00998","confirmAccountNumber":"545454545454","aadhaarNumber":"987865652876","panCardNumber":"SDERT54567","remarks":"remarks by karan","isConsent":"true","panCard":"1234567890"},{"beneficiaryName":"Sona","accountNumber":"888888888888","ifscCode":"AXIS87878","confirmAccountNumber":"888888888888","aadhaarNumber":"987865654748","panCardNumber":"KIUYH8767F","remarks":"remarks by sona","isConsent":"true"}],"beneficiaryId":"66e18f0edc8c2fca8666b7f5"} => 400  Required document fields are missing: photo, landIndemnityBond, structureIndemnityBond, uploadAffidavit, aadhaarCard, panCard, chequeOrPassbook 
