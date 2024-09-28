@@ -25,7 +25,7 @@ const loginUser = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Login successfully",
+      message: "Logged In Successfully",
       user: {
         name: user.name,
         username: username,
@@ -45,20 +45,20 @@ const loginUser = async (req, res) => {
 
 // Signup user
 const signupUser = async (req, res) => {
-  const { name, phoneNumber, username, password, role } = req.body;
+  const { name, username, password, role } = req.body;
 
-  if (!name || !phoneNumber || !username || !password || !role) {
+  if (!name || !username || !password || !role) {
     return res.status(400).json({ error: 'Name, phoneNumber, username, password, and role are required.' });
   }
 
   try {
     // Create the user
-    const user = await User.signup(name, phoneNumber, username, password, role);
+    const user = await User.signup(name, username, password, role);
 
     // Create a token with the role
     const token = createToken(user._id, user.role);
 
-    res.status(200).json({ userid: user._id, name, phoneNumber, username, role: user.role, token });
+    res.status(200).json({ userid: user._id, name, username, role: user.role, token });
   } catch (err) {
     console.log(err);
     res.status(400).json({ error: err.message });
