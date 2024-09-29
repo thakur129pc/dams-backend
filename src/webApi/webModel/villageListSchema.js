@@ -9,10 +9,6 @@ const villageListSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-    // villageCode:{
-    //     type:Number,
-    //     required:true
-    // },
     villageArea:{
         type:String,
         required:true
@@ -27,8 +23,11 @@ const villageListSchema = new mongoose.Schema({
     },
     villageStatus:{
         type: String,
-        enum: ["active", "deactive"],
+        enum: ["active", "inactive"],
         default: "active"
+    },
+    interestDays:{
+        type: Number,
     },
     update:{
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

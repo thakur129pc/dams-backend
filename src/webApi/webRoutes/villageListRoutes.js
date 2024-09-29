@@ -12,10 +12,10 @@ import requireAuth from "../../middleware/auth.js"
 const router = express.Router();
 
 // Route for creating a single village
-router.post('/villages', createVillage);
+router.post('/add-village', createVillage);
 
 // Route for bulk creating villages
-router.post('/villages/bulk', bulkCreateVillages);  // Added route for bulk creation
+router.post('/add-villages', bulkCreateVillages);  // Added route for bulk creation
 
 // Route for retrieving all villages
 router.get('/villages', getAllVillages);

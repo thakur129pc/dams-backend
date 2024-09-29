@@ -13,7 +13,7 @@ const loginUser = async (req, res) => {
   if (!username || !password || !role) {
     return res.status(400).json({
       success: false, 
-      message: 'Username, password, and role are required.'
+      message: 'Username, password and role are required.'
     });
   }
 

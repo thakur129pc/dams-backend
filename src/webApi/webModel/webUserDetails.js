@@ -25,7 +25,6 @@ const userSchema = new mongoose.Schema({
 // Static method for user signup
 userSchema.statics.signup = async function (
   name,
-  phoneNumber,
   username,
   password,
   role
@@ -49,7 +48,6 @@ userSchema.statics.signup = async function (
   // Create and return the new user
   const user = await this.create({
     name,
-    phoneNumber,
     username,
     password: hash,
     role,
