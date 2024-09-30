@@ -269,12 +269,13 @@ export const disbursePage = catchAsyncError(async (req, res, next) => {
         ]);
 
         const landPricePerSqMt = landPriceDetails?.landPricePerSqMtr || "";
-
         return {
           beneficiaryId: beneficiarySelfDetails._id,
           beneficiaryName: beneficiarySelfDetails.beneficiaryName || "",
           beneficiaryStatus: beneficiarySelfDetails.beneficiaryStatus || "",
-          villageName: villageData?.villageName || "",
+          villageName: villageData?.villageName,
+          villageId: villageData?._id,
+          interestDays: villageData?.interestDays,
           khatauniSankhya: khatauniSankhya,
           beneficiaryType: beneficiarySelfDetails.beneficiaryType || "",
           nokId: beneficiarySelfDetails.nokId || "",
@@ -398,7 +399,7 @@ export const getAllBeneficiaries = async (req, res) => {
         "khatauniSankhya serialNumber khasraNumber acquiredKhasraNumber areaVariety acquiredRakbha"
       )
       .populate("landPriceId", "landPricePerSqMtr")
-      .populate("villageId", "villageName")
+      .populate("villageId", "villageName interestDays")
       .select(
         "beneficiaryName beneficiaryStatus beneficiaryShare acquiredBeneficiaryShare isDisputed khatauniId landPriceId villageId nokId poaId nokHId poaHId isDocumentUploaded isDisbursementUploaded"
       );
@@ -439,6 +440,7 @@ export const getAllBeneficiaries = async (req, res) => {
           isDisputed: b.isDisputed,
           beneficiaryStatus: b.beneficiaryStatus,
           villageId: b.villageId?._id || "",
+          interestDays: b.villageId?.interestDays || "",
           villageName: b.villageId?.villageName || "",
           khatauniSankhya: b.khatauniId?.khatauniSankhya || "",
           serialNumber: b.khatauniId?.serialNumber || "",
