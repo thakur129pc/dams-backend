@@ -268,6 +268,11 @@ export const disbursePage = catchAsyncError(async (req, res, next) => {
             : null,
         ]);
 
+        const userRole = req.user.role;
+        const lastApprovedHistory = verificationData?.history?.filter(
+          (item) => item.userRole == userRole && item.status == "1"
+        );
+
         const landPricePerSqMt = landPriceDetails?.landPricePerSqMtr || "";
         return {
           beneficiaryId: beneficiarySelfDetails._id,
@@ -303,6 +308,7 @@ export const disbursePage = catchAsyncError(async (req, res, next) => {
             userRole: verificationData?.userRole || "",
             userId: verificationData?.userId || "",
             rejectionMessage: verificationData?.rejectionMessage || "",
+            history: lastApprovedHistory || "",
           },
           queryMessages:
             queryData?.queryMessages.map((msg) => ({
@@ -552,7 +558,8 @@ export const verifyBeneficiaryDetails = catchAsyncError(
   async (req, res, next) => {
     try {
       // Log the req.user object to ensure it's attached by the middleware
-      const { beneficiaryId, status, rejectionMessage } = req.body;
+      const { beneficiaryId, status, rejectionMessage, revokedMessage } =
+        req.body;
 
       // Ensure that req.user is properly populated
       if (!req.user) {
@@ -592,19 +599,20 @@ export const verifyBeneficiaryDetails = catchAsyncError(
             {
               userId,
               status,
+              level: userRole,
               rejectionMessage: status === "0" ? rejectionMessage : "",
               updatedAt: new Date(),
             },
           ],
         });
       } else {
-        // Log existing verification record for debugging
-
         // Update the verificationLevel or status if a record exists
         if (status === "1") {
           const newHistory = {
             userId,
             status,
+            userRole: userRole,
+            updatedBy: updatedBy,
             updatedAt: new Date(),
           };
           verificationDetails.history.push(newHistory);
@@ -617,6 +625,8 @@ export const verifyBeneficiaryDetails = catchAsyncError(
           const newHistory = {
             userId,
             status,
+            userRole: userRole,
+            updatedBy: updatedBy,
             rejectionMessage,
             updatedAt: new Date(),
           };
@@ -625,6 +635,20 @@ export const verifyBeneficiaryDetails = catchAsyncError(
           verificationDetails.userRole = userRole;
           verificationDetails.status = status;
           verificationDetails.rejectionMessage = rejectionMessage;
+        } else if (status === "2") {
+          const newHistory = {
+            userId,
+            status,
+            userRole: userRole,
+            updatedBy: updatedBy,
+            revokedMessage,
+            updatedAt: new Date(),
+          };
+          verificationDetails.history.push(newHistory);
+          verificationDetails.updatedBy = updatedBy;
+          verificationDetails.userRole = userRole;
+          verificationDetails.status = "1";
+          verificationDetails.revokedMessage = rejectionMessage;
         } else {
           throw new ErrorHandler("Invalid status value", 400);
         }
@@ -635,12 +659,89 @@ export const verifyBeneficiaryDetails = catchAsyncError(
       if (beneficiaryQuery) {
         // To reset query status to "0"
         beneficiaryQuery.status = "0";
-        // Step 2: Add the new message to the queryMessages array
-        const lastQueryMessage = {
-          message: "---@over@---",
-        };
-        // Push the last message to the queryMessages array
-        beneficiaryQuery.queryMessages.push(lastQueryMessage);
+
+        if (status === "0") {
+          // Add the rejection message to queryMessages array
+          const rejectionQueryMessage = {
+            userId: userId,
+            updatedAt: new Date(),
+            message: `---@rejected@---${rejectionMessage}`,
+            userRole: userRole,
+            name: updatedBy,
+          };
+          beneficiaryQuery.queryMessages.push(rejectionQueryMessage);
+        }
+
+        if (status === "1") {
+          // Add the approved message to queryMessages array
+          const approvedQueryMessage = {
+            userId: userId,
+            updatedAt: new Date(),
+            message: "---@approved@---",
+            userRole: userRole,
+            name: updatedBy,
+          };
+          beneficiaryQuery.queryMessages.push(approvedQueryMessage);
+        }
+
+        if (status === "2") {
+          // Add the revoking message to queryMessages array
+          const revokedQueryMessage = {
+            userId: userId,
+            updatedAt: new Date(),
+            message: `---@revoked@---${revokedMessage}`,
+            userRole: userRole,
+            name: updatedBy,
+          };
+          beneficiaryQuery.queryMessages.push(revokedQueryMessage);
+        }
+        await beneficiaryQuery.save();
+      } else {
+        // If no BeneficiaryQuery exists, create a new one
+        beneficiaryQuery = new BeneficiaryQuery({
+          beneficiaryId: beneficiaryId,
+          queryMessages: [],
+          queryLevel: userRole,
+          status: "0",
+        });
+        // To reset query status to "0"
+        beneficiaryQuery.status = "0";
+
+        if (status === "0") {
+          // Add the rejection message to queryMessages array
+          const rejectionQueryMessage = {
+            userId: userId,
+            updatedAt: new Date(),
+            message: `---@rejected@---${rejectionMessage}`,
+            userRole: userRole,
+            name: updatedBy,
+          };
+          beneficiaryQuery.queryMessages.push(rejectionQueryMessage);
+        }
+
+        if (status === "1") {
+          // Add the approved message to queryMessages array
+          const approvedQueryMessage = {
+            userId: userId,
+            updatedAt: new Date(),
+            message: "---@approved@---",
+            userRole: userRole,
+            name: updatedBy,
+          };
+          beneficiaryQuery.queryMessages.push(approvedQueryMessage);
+        }
+
+        if (status === "2") {
+          // Add the revoking message to queryMessages array
+          const revokedQueryMessage = {
+            userId: userId,
+            updatedAt: new Date(),
+            message: `---@revoked@---${revokedMessage}`,
+            userRole: userRole,
+            name: updatedBy,
+          };
+          beneficiaryQuery.queryMessages.push(revokedQueryMessage);
+        }
         await beneficiaryQuery.save();
       }
 
@@ -654,9 +755,6 @@ export const verifyBeneficiaryDetails = catchAsyncError(
         }
 
         const beneficiaryDoc = await beneficiaryDocs.findOne({ beneficiaryId });
-        // if (!beneficiaryDoc) {
-        //   throw new ErrorHandler("Beneficiary document details not found", 400);
-        // }
 
         const paymentStatus = await beneficiaryPaymentStatus.create({
           accountInfo: {
@@ -681,22 +779,27 @@ export const verifyBeneficiaryDetails = catchAsyncError(
         });
       }
 
-      // Log the final response based on status
-
       // Send response based on status
       if (status === "1") {
         return res.status(200).json({
           success: true,
-          message: "Beneficiary details approved successfully.",
-          verificationLevel: verificationDetails.verificationLevel,
+          message: "Beneficiary details approved successfully",
           data: verificationDetails,
         });
-      } else if (status === "0") {
+      }
+      if (status === "0") {
         return res.status(200).json({
           success: true,
-          message: "Beneficiary details got rejected.",
-          verificationLevel: verificationDetails.verificationLevel,
+          message: "Beneficiary details got rejected",
           rejectionMessage,
+          data: verificationDetails,
+        });
+      }
+      if (status === "2") {
+        return res.status(200).json({
+          success: true,
+          message: "Beneficiary revoked successfully",
+          revokedMessage,
           data: verificationDetails,
         });
       }
@@ -733,6 +836,7 @@ export const getAllBeneficiariesPaymentStatus = async (req, res) => {
       beneficiaries.map(async (b) => {
         const paymentStatus = await beneficiaryPaymentStatus
           .findOne({ beneficiaryId: b._id })
+          .populate("disbursementId", "totalCompensation")
           .select("paymentStatus totalCompensation");
 
         if (paymentStatus) {
@@ -750,7 +854,7 @@ export const getAllBeneficiariesPaymentStatus = async (req, res) => {
             acquiredRakbha: b.khatauniId?.acquiredRakbha || "",
             beneficiaryShare: b.beneficiaryShare,
             acquiredBeneficiaryShare: b.acquiredBeneficiaryShare,
-            totalCompensation: paymentStatus.totalCompensation || "0",
+            totalCompensation: paymentStatus.disbursementId.totalCompensation,
             paymentStatus: paymentStatus.paymentStatus || "0",
           };
         }

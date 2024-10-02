@@ -34,6 +34,10 @@ const verifySchema = new mongoose.Schema(
       type: String,
       default: null, // Set null when no rejection message
     },
+    revokedMessage: {
+      type: String,
+      default: null,
+    },
     history: { type: Array },
     updatedAt: {
       type: Date,
