@@ -122,6 +122,11 @@ const uploadExcel = async (req, res) => {
               khatauniDetail
             );
 
+            if (landPriceDetail.landPricePerSqMtr) {
+              const savedLandPrice = await LandPrice.create(landPriceDetail);
+              landPriceId = savedLandPrice._id;
+            }
+
             await Beneficiary.findOneAndUpdate(
               { _id: khatauniDetail.beneficiaryId },
               {
@@ -171,10 +176,10 @@ const uploadExcel = async (req, res) => {
       }
     });
 
-    if (landPriceDetail.landPricePerSqMtr) {
-      const savedLandPrice = await LandPrice.create(landPriceDetail);
-      landPriceId = savedLandPrice._id;
-    }
+    // if (landPriceDetail.landPricePerSqMtr) {
+    //   const savedLandPrice = await LandPrice.create(landPriceDetail);
+    //   landPriceId = savedLandPrice._id;
+    // }
 
     await Promise.all(beneficiaryPromises);
 
@@ -194,12 +199,10 @@ const uploadExcel = async (req, res) => {
       { new: true }
     );
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Beneficiaries records uploaded successfully",
-      });
+    res.status(200).json({
+      success: true,
+      message: "Beneficiaries records uploaded successfully",
+    });
   } catch (error) {
     console.error("Error:", error.message);
     res.status(500).json({ success: false, message: error.message });
