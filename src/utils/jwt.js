@@ -21,7 +21,7 @@ export const sendToken = async (userCreds, statusCode, res, message) => {
 
       
         res.status(statusCode).cookie("token", token, options).json({
-            success: true,
+            status: true,
             message,
             token,
             user: {
@@ -36,7 +36,7 @@ export const sendToken = async (userCreds, statusCode, res, message) => {
     } catch (error) {
         console.error(error); 
         return res.status(500).json({
-            success: false,
+            status: false,
             message: 'Server Error',
         });
     }

@@ -4,24 +4,35 @@ import UserCredentials from '../mobileModel/userCredsSchema.js';
 import ErrorHandler from '../../middleware/error.js';
 import { sendToken } from '../../utils/jwt.js';
 
+
+
 export const register = catchAsyncError(async (req, res, next) => {
     const { username, password, email, phoneNumber, userRole, fullName } = req.body;
 
+    // Validate required fields
     if (!username || !password) {
-        return next(new ErrorHandler("Please enter your username and password.", 400));
+        return res.status(200).json({
+            status: false,
+            message: "Please provide username & password.",
+        });
     }
 
     const isUsernameExists = await UserCredentials.findOne({ username });
     if (isUsernameExists) {
-        return next(new ErrorHandler("Username already exists!", 400));
+        return res.status(200).json({
+            status: false,
+            message: "Username already exists.",
+        });
     }
 
+    // Create user credentials
     const newUserCreds = await UserCredentials.create({
         username,
         password,
-        email
+        email,
     });
 
+    // Create user details
     await UserDetails.create({
         userid: newUserCreds._id,
         username,
@@ -29,7 +40,7 @@ export const register = catchAsyncError(async (req, res, next) => {
         userRole,
         fullName,
         isUserDeleted: false,
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
     });
 
     const token = newUserCreds.getJWTToken();
@@ -40,31 +51,47 @@ export const register = catchAsyncError(async (req, res, next) => {
         username,
         userRole,
         fullName,
-        id: newUserCreds._id
+        id: newUserCreds._id,
     });
 });
 
 export const login = catchAsyncError(async (req, res, next) => {
     const { username, password } = req.body;
 
+    // Validate required fields
     if (!username || !password) {
-        return next(new ErrorHandler("Please provide username and password.", 400));
+        return res.status(200).json({
+            status: false,
+            message: "Please provide username & password.",
+        });
     }
 
     const userCreds = await UserCredentials.findOne({ username }).select("+password");
     if (!userCreds) {
-        return next(new ErrorHandler("Invalid username or password.", 400));
+        return res.status(200).json({
+            status: false,
+            message: "Invalid username or password",
+        });
     }
 
     const isPasswordMatched = await userCreds.comparePassword(password);
     if (!isPasswordMatched) {
-        return next(new ErrorHandler("Invalid username or password.", 400));
+        return res.status(200).json({
+            status: false,
+            message: "Invalid username or password",
+        });
     }
 
     const userDetails = await UserDetails.findOne({ userid: userCreds._id });
     if (!userDetails) {
-        return next(new ErrorHandler("User details not found.", 404));
+        return res.status(200).json({
+            status: false,
+            message: "User details not found.",
+        });
     }
+
+    // If everything is okay, you can send back user details
+   
 
     const combinedUser = {
         email: userCreds.email,
@@ -87,7 +114,7 @@ export const logout = catchAsyncError(async (req, res, next) => {
             expires: new Date(Date.now()),
         })
         .json({
-            success: true,
+            status: true,
             message: 'User logged out successfully.',
         });
 });

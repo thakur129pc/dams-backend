@@ -6,18 +6,18 @@ const createVillage = async (req, res) => {
     villageName,
     villageNameHindi,
     villageArea,
+    interestDays,
     khatauni,
     totalBeneficiaries,
-    interestDays,
   } = req.body;
   try {
     const village = new Village({
       villageName,
       villageNameHindi,
       villageArea,
+      interestDays,
       khatauni,
       totalBeneficiaries,
-      interestDays,
     });
     const savedVillage = await village.save();
     res.status(201).json({ success: true, savedVillage });
@@ -30,10 +30,12 @@ const createVillage = async (req, res) => {
 const bulkCreateVillages = async (req, res) => {
   const villages = req.body;
   if (!Array.isArray(villages) || villages.length === 0) {
-    return res.status(400).json({
-      success: false,
-      message: "Please provide a valid array of villages.",
-    });
+    return res
+      .status(400)
+      .json({
+        success: false,
+        message: "Please provide a valid array of villages.",
+      });
   }
   try {
     // Create villages in bulk
@@ -57,7 +59,7 @@ const getAllVillages = async (req, res) => {
       khatauni: village.khatauni,
       totalBeneficiaries: village.totalBeneficiaries,
       villageStatus: village.villageStatus,
-      interestDays: village.interestDays,
+      interestDays: village.interestDays || 0,
     }));
     res.status(200).json({ success: true, villages: updatedVillages });
   } catch (err) {

@@ -38,6 +38,7 @@ router.post("/verify-details", requireAuth, verifyBeneficiaryDetails);
 
 router.get("/payment-beneficiaries", getAllBeneficiariesPaymentStatus);
 
+
 router.post("/add-legal-heir", requireAuth, addLegalHeir);
 
 export default router;

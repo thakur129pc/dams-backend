@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-
+import bcrypt from 'bcrypt'
+const phoneNumberRegex = /^[6-9]\d{9}$/;
 const userRegistrationSchema = new mongoose.Schema({
     username: {
         type: String,
@@ -24,9 +25,14 @@ const userRegistrationSchema = new mongoose.Schema({
     phoneNumber: {
         type: String,
         required: true,
-        unique: true,
-        match: [/^\d{10}$/, 'is invalid'],
-    },
+        validate: {
+          validator: function(v) {
+            return /^[6-9]\d{9}$/.test(v);
+          },
+          message: 'Phone number must start with a digit between 6 and 9 and be 10 digits long.'
+        }
+      }
+,      
     userRole: {
         type: String,
         default: 'user',
