@@ -23,8 +23,8 @@ const verifySchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["0", "1", "2"], // "0" for Rejected, "1" for Approved, "2" for Pending
-      default: "0", // Default status is 'Pending'
+      enum: ["", "0", "1", "2"], // "0" for Rejected, "1" for Approved, "2" for Pending
+      default: "", // Default status is 'Pending'
     },
     verificationLevel: {
       type: String,

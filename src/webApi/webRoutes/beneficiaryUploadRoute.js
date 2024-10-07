@@ -2,6 +2,7 @@ import express from "express";
 import upload from "../../middleware/multer.js";
 import { uploadExcel } from "../webController/uploadExcellController.js"; // Adjust the path if necessary
 import {
+  addLegalHeir,
   createBeneficiaryQuery,
   createDisbursementDetails,
   disbursePage,
@@ -36,5 +37,7 @@ router.post(
 router.post("/verify-details", requireAuth, verifyBeneficiaryDetails);
 
 router.get("/payment-beneficiaries", getAllBeneficiariesPaymentStatus);
+
+router.post("/add-legal-heir", requireAuth, addLegalHeir);
 
 export default router;
