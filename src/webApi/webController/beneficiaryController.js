@@ -10,7 +10,7 @@ import villageSchema from "../webModel/villageListSchema.js";
 import landPrice from "../webModel/landPrice.js";
 import beneficiaryPaymentStatus from "../webModel/beneficiaryPaymentStatus.js";
 import path from "path";
-import mongoose from  "mongoose";
+import mongoose from "mongoose";
 
 // Controller to fetch all beneficiaries without any request parameters
 export const getAllbeneficiaryDisburmentlist = async (req, res) => {
@@ -61,8 +61,8 @@ export const getAllbeneficiaryDisburmentlist = async (req, res) => {
           beneficiaryShare: b.beneficiaryShare,
           acquiredBeneficiaryShare: b.acquiredBeneficiaryShare,
           landPricePerSqMt: b.landPriceId?.landPricePerSqMtr || "",
-          benefactorId:b.benefactorId || '',
-          legalHeirs:b.legalHeirs || [],
+          benefactorId: b.benefactorId || "",
+          legalHeirs: b.legalHeirs || [],
           isDocumentsUploaded: docs ? "1" : "0",
           aadhar: docs?.aadhaarNumber || "",
           pancard: docs?.panCardNumber || "",
@@ -77,7 +77,7 @@ export const getAllbeneficiaryDisburmentlist = async (req, res) => {
     // Filter based on user role
     const filteredBeneficiaries = transformedBeneficiaries.filter((b) => {
       if (userRole === "0")
-         return b.verificationLevel === "0" ||b.verificationLevel === "4";
+        return b.verificationLevel === "0" || b.verificationLevel === "4";
       if (userRole === "1")
         return b.verificationLevel === "0" || b.verificationLevel === "1";
       if (userRole === "2")
@@ -283,8 +283,8 @@ export const disbursePage = catchAsyncError(async (req, res, next) => {
           interestDays: villageData?.interestDays || 0,
           khatauniSankhya: khatauniSankhya,
           beneficiaryType: beneficiarySelfDetails.beneficiaryType || "",
-          benefactorId:beneficiarySelfDetails.benefactorId || '',
-          legalHeirs:beneficiarySelfDetails.legalHeirs || [],
+          benefactorId: beneficiarySelfDetails.benefactorId || "",
+          legalHeirs: beneficiarySelfDetails.legalHeirs || [],
           serialNumber: khatauniDetails?.serialNumber || "",
           khasraNumber: khatauniDetails?.khasraNumber || "",
           acquiredKhasraNumber: khatauniDetails?.acquiredKhasraNumber || "",
@@ -364,10 +364,10 @@ export const disbursePage = catchAsyncError(async (req, res, next) => {
     const finalBeneficiariesData = filteredBeneficiariesData.filter((b) => {
       const level = b.verificationDetails.level;
       const roleLevels = {
-        0: ["0","4"],
-        1: ["0", "1","4"],
-        2: ["1", "2","4"],
-        3: ["2", "3","4"],
+        0: ["0", "4"],
+        1: ["0", "1", "4"],
+        2: ["1", "2", "4"],
+        3: ["2", "3", "4"],
       };
       const isAllowed = roleLevels[userRole]?.includes(level);
       return isAllowed;
@@ -597,7 +597,8 @@ export const verifyBeneficiaryDetails = catchAsyncError(
             {
               userId,
               status,
-              level: userRole,
+              userRole: userRole,
+              updatedBy: updatedBy,
               rejectionMessage: status === "0" ? rejectionMessage : "",
               updatedAt: new Date(),
             },
@@ -645,7 +646,7 @@ export const verifyBeneficiaryDetails = catchAsyncError(
           verificationDetails.history.push(newHistory);
           verificationDetails.updatedBy = updatedBy;
           verificationDetails.userRole = userRole;
-          verificationDetails.status = "1";
+          verificationDetails.status = userRole === "1" ? "" : "1";
           verificationDetails.revokedMessage = rejectionMessage;
         } else {
           throw new ErrorHandler("Invalid status value", 400);
@@ -874,7 +875,6 @@ export const getAllBeneficiariesPaymentStatus = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error", error });
   }
 };
-
 
 // Controller for adding legal heir
 export const addLegalHeir = async (req, res) => {
