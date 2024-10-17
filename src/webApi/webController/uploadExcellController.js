@@ -192,6 +192,12 @@ const uploadExcel = async (req, res) => {
       .populate("khatauniId", "khatauniSankhya serialNumber")
       .select("acquiredBeneficiaryShare");
 
+    console.log(
+      "++++++++++++++++++++++++++++++++++++++++++",
+      beneficiaries,
+      "++++++++++++++++++++++++++++++++++++++++++"
+    );
+
     const khatauniSankhyaSet = new Set();
     let aquiredVillageArea = 0;
 
@@ -213,12 +219,6 @@ const uploadExcel = async (req, res) => {
         "----------------------------------------"
       );
     });
-
-    // console.log(
-    //   "----------------------------------------",
-    //   beneficiaries,
-    //   "----------------------------------------"
-    // );
 
     await VillageList.findOneAndUpdate(
       { _id: villageId },
