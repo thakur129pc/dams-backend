@@ -1,16 +1,16 @@
 import path from "path";
 import fs from "fs";
 import ExcelJS from "exceljs";
-import sanitize from 'sanitize-html';
+import sanitize from "sanitize-html";
 import Beneficiary from "../webModel/benificiaryDetail.js";
 import KhatauniDetails from "../webModel/khatauniDetailsSchema.js";
-import LandPrice from "../webModel/landPrice.js"; // Import the LandPrice model
+import LandPrice from "../webModel/landPrice.js";
 import VillageList from "../webModel/villageListSchema.js";
 import BeneficiarDisbursementDetails from "../webModel/beneficiaryDisbursementDetails.js";
 import OldBeneficiarDisbursement from "../webModel/beneficiaryDisbursementDetails - old Data.js";
 import { fileURLToPath } from "url";
+import beneficiarDetails from "../webModel/benificiaryDetail.js";
 
-// Get the directory name from the module URL
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -22,7 +22,6 @@ const uploadExcel = async (req, res) => {
   }
   const { villageId } = req.body;
   const userId = req.user.id;
-  // Sanitize villageId and check if it's valid
   const sanitizedVillageId = sanitize(villageId, {
     allowedTags: [],
     allowedAttributes: {},
@@ -39,7 +38,7 @@ const uploadExcel = async (req, res) => {
     }
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(filePath);
-    const worksheet = workbook.getWorksheet(1); // Assume first sheet
+    const worksheet = workbook.getWorksheet(1);
     const columnMappings = {
       A: "khatauniSankhya",
       C: "beneficiaryName",
@@ -60,13 +59,11 @@ const uploadExcel = async (req, res) => {
       S: "totalCompensation",
       T: "vivran",
     };
-    const uniqueKhatauniSankhyaSet = new Set();
-    const uniqueBeneficiaries = new Set(); // Keep track of unique beneficiaries within the Excel
     const beneficiaryPromises = [];
-    const processedRows = new Set(); // To track unique rows within the Excel file itself
+    const processedRows = new Set();
     let landPriceDetail = {};
     let landPriceId = null;
-    // Find land price only once, based on the first row
+    let totalVillageArea = 0;
     let landPricePerSqMtr = worksheet.getRow(2).getCell("J").value;
     if (landPricePerSqMtr) {
       landPricePerSqMtr = sanitize(landPricePerSqMtr.toString()).trim();
@@ -75,11 +72,7 @@ const uploadExcel = async (req, res) => {
         villageId: sanitizedVillageId,
       });
       if (existingLandPrice) {
-        // Reuse existing land price record
         landPriceId = existingLandPrice._id;
-        console.log(
-          `Reusing existing land price record with ID: ${landPriceId}`
-        );
       } else {
         landPriceDetail = {
           landPricePerSqMtr: landPricePerSqMtr,
@@ -88,7 +81,6 @@ const uploadExcel = async (req, res) => {
         };
         const savedLandPrice = await LandPrice.create(landPriceDetail);
         landPriceId = savedLandPrice._id;
-        console.log(`New land price record created with ID: ${landPriceId}`);
       }
     }
     worksheet.eachRow({ includeEmpty: false }, async (row, rowNumber) => {
@@ -97,23 +89,15 @@ const uploadExcel = async (req, res) => {
         let serialNumber = row.getCell("B").value;
         let beneficiaryName = sanitize(row.getCell("C").value?.trim() || "");
         if (isNaN(serialNumber)) {
-          console.log(
-            `Invalid serialNumber: ${serialNumber} at row ${rowNumber}. Skipping row.`
-          );
           return;
         }
-        uniqueKhatauniSankhyaSet.add(khatauniSankhya);
         serialNumber = Number(serialNumber);
         if (khatauniSankhya && serialNumber && beneficiaryName) {
           const uniqueKey = `${khatauniSankhya}-${serialNumber}-${beneficiaryName}`;
           if (processedRows.has(uniqueKey)) {
-            console.log(
-              `Duplicate entry found within Excel for khatauniSankhya: ${khatauniSankhya}, serialNumber: ${serialNumber}, beneficiaryName: ${beneficiaryName}. Skipping row ${rowNumber}.`
-            );
             return;
           }
           processedRows.add(uniqueKey);
-          uniqueBeneficiaries.add(uniqueKey);
           const existingKhatauniDetail = await KhatauniDetails.findOne({
             khatauniSankhya,
             serialNumber,
@@ -124,11 +108,9 @@ const uploadExcel = async (req, res) => {
             beneficiaryName,
           });
           if (existingKhatauniDetail || existingBeneficiary) {
-            console.log(
-              `Duplicate entry found in database for khatauniSankhya: ${khatauniSankhya}, serialNumber: ${serialNumber}, beneficiaryName: ${beneficiaryName}. Skipping row ${rowNumber}.`
-            );
             return;
           }
+
           if (typeof khatauniSankhya === "number" && !isNaN(khatauniSankhya)) {
             const beneficiary = {};
             const khatauniDetail = {};
@@ -201,15 +183,50 @@ const uploadExcel = async (req, res) => {
         }
       }
     });
+
     await Promise.all(beneficiaryPromises);
-    const uniqueBeneficiariesCount = uniqueBeneficiaries.size;
-    console.log("Unique beneficiaries from Excel:", uniqueBeneficiariesCount);
+
+    // Fetch beneficiaries based on villageId
+    let beneficiaries = await beneficiarDetails
+      .find({ villageId })
+      .populate("khatauniId", "khatauniSankhya serialNumber")
+      .select("acquiredBeneficiaryShare");
+
+    const khatauniSankhyaSet = new Set();
+    let aquiredVillageArea = 0;
+
+    beneficiaries = beneficiaries.sort(
+      (a, b) => a.khatauniId.serialNumber - b.khatauniId.serialNumber
+    );
+
+    beneficiaries.forEach((beneficiary) => {
+      khatauniSankhyaSet.add(beneficiary.khatauniId.khatauniSankhya);
+      let acquiredBeneficiaryArea = parseFloat(
+        beneficiary.acquiredBeneficiaryShare.split("-").join("")
+      );
+      aquiredVillageArea += acquiredBeneficiaryArea;
+      console.log(
+        "----------------------------------------",
+        beneficiary.khatauniId.serialNumber,
+        beneficiary.acquiredBeneficiaryShare,
+        aquiredVillageArea,
+        "----------------------------------------"
+      );
+    });
+
+    // console.log(
+    //   "----------------------------------------",
+    //   beneficiaries,
+    //   "----------------------------------------"
+    // );
+
     await VillageList.findOneAndUpdate(
-      { _id: sanitizedVillageId },
+      { _id: villageId },
       {
         $set: {
-          khatauni: uniqueKhatauniSankhyaSet.size,
-          totalBeneficiaries: uniqueBeneficiariesCount,
+          khatauni: khatauniSankhyaSet.size,
+          totalBeneficiaries: beneficiaries.length,
+          villageArea: aquiredVillageArea,
           landPriceId: landPriceId,
           update: { userId, updatedAt: new Date(), action: "0" },
         },
@@ -221,12 +238,10 @@ const uploadExcel = async (req, res) => {
     });
   } catch (error) {
     console.error("Error processing file:", error.message);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "An error occurred while processing the file",
-      });
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while processing the file",
+    });
   }
 };
 export { uploadExcel };
