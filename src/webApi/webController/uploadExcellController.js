@@ -63,7 +63,6 @@ const uploadExcel = async (req, res) => {
     const processedRows = new Set();
     let landPriceDetail = {};
     let landPriceId = null;
-    let totalVillageArea = 0;
     let landPricePerSqMtr = worksheet.getRow(2).getCell("J").value;
     if (landPricePerSqMtr) {
       landPricePerSqMtr = sanitize(landPricePerSqMtr.toString()).trim();
@@ -186,24 +185,16 @@ const uploadExcel = async (req, res) => {
 
     await Promise.all(beneficiaryPromises);
 
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
     // Fetch beneficiaries based on villageId
     let beneficiaries = await beneficiarDetails
       .find({ villageId })
       .populate("khatauniId", "khatauniSankhya serialNumber")
       .select("acquiredBeneficiaryShare");
 
-    console.log(
-      "++++++++++++++++++++++++++++++++++++++++++",
-      beneficiaries,
-      "++++++++++++++++++++++++++++++++++++++++++"
-    );
-
     const khatauniSankhyaSet = new Set();
     let aquiredVillageArea = 0;
-
-    beneficiaries = beneficiaries.sort(
-      (a, b) => a.khatauniId.serialNumber - b.khatauniId.serialNumber
-    );
 
     beneficiaries.forEach((beneficiary) => {
       khatauniSankhyaSet.add(beneficiary.khatauniId.khatauniSankhya);
@@ -211,13 +202,6 @@ const uploadExcel = async (req, res) => {
         beneficiary.acquiredBeneficiaryShare.split("-").join("")
       );
       aquiredVillageArea += acquiredBeneficiaryArea;
-      console.log(
-        "----------------------------------------",
-        beneficiary.khatauniId.serialNumber,
-        beneficiary.acquiredBeneficiaryShare,
-        aquiredVillageArea,
-        "----------------------------------------"
-      );
     });
 
     await VillageList.findOneAndUpdate(
