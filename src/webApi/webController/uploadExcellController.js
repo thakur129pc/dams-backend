@@ -9,7 +9,6 @@ import VillageList from "../webModel/villageListSchema.js";
 import BeneficiarDisbursementDetails from "../webModel/beneficiaryDisbursementDetails.js";
 import OldBeneficiarDisbursement from "../webModel/beneficiaryDisbursementDetails - old Data.js";
 import { fileURLToPath } from "url";
-import beneficiarDetails from "../webModel/benificiaryDetail.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -188,7 +187,7 @@ const uploadExcel = async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     // Fetch beneficiaries based on villageId
-    let beneficiaries = await beneficiarDetails
+    let beneficiaries = await Beneficiary
       .find({ villageId })
       .populate("khatauniId", "khatauniSankhya serialNumber")
       .select("acquiredBeneficiaryShare");
