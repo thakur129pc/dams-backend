@@ -143,7 +143,7 @@ export const createDisbursementDetails = async (req, res) => {
           disbursementDetails.toshan = beneficiary.toshan;
           disbursementDetails.interest = beneficiary.interest;
           disbursementDetails.totalCompensation = beneficiary.totalCompensation;
-          disbursementDetails.vivran = beneficiary.vivran || 0;
+          disbursementDetails.vivran = beneficiary.vivran || "";
           disbursementDetails.isDisputed = beneficiary.isDisputed || "0";
           disbursementDetails.isConsent = beneficiary.isConsent || "0";
           disbursementDetails.isAproved = beneficiary.isAproved || "0";
@@ -166,7 +166,7 @@ export const createDisbursementDetails = async (req, res) => {
             toshan: beneficiary.toshan,
             interest: beneficiary.interest,
             totalCompensation: beneficiary.totalCompensation,
-            vivran: beneficiary.vivran || 0,
+            vivran: beneficiary.vivran || "",
             isDisputed: beneficiary.isDisputed || "0",
             isConsent: beneficiary.isConsent || "0",
             isAproved: beneficiary.isAproved || "0",
