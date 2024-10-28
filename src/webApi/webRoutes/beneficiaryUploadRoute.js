@@ -9,6 +9,7 @@ import {
   getAllBeneficiaries,
   getAllBeneficiariesPaymentStatus,
   getAllbeneficiaryDisburmentlist,
+  getKhatauniDetails,
   verifyBeneficiaryDetails,
 } from "../webController/beneficiaryController.js";
 import requireAuth from "../../middleware/auth.js";
@@ -18,6 +19,8 @@ const router = express.Router();
 router.post("/upload-excel", requireAuth, upload.single("file"), uploadExcel); // Ensure 'file' matches the form field name
 
 router.get("/village-beneficiaries", requireAuth, getAllBeneficiaries);
+
+router.get("/khatauni-details", requireAuth, getKhatauniDetails);
 
 // Route to fetch all beneficiaries
 router.get("/beneficiaries-list", requireAuth, getAllbeneficiaryDisburmentlist);
@@ -37,7 +40,6 @@ router.post(
 router.post("/verify-details", requireAuth, verifyBeneficiaryDetails);
 
 router.get("/payment-beneficiaries", getAllBeneficiariesPaymentStatus);
-
 
 router.post("/add-legal-heir", requireAuth, addLegalHeir);
 

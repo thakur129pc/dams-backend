@@ -38,6 +38,10 @@ const verifySchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    revertMessage: {
+      type: String,
+      default: null,
+    },
     history: { type: Array },
     updatedAt: {
       type: Date,

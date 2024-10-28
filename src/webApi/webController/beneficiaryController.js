@@ -9,8 +9,7 @@ import BeneficiaryQuery from "../webModel/beneficiaryQuerySchema.js"; // Adjust 
 import villageSchema from "../webModel/villageListSchema.js";
 import landPrice from "../webModel/landPrice.js";
 import beneficiaryPaymentStatus from "../webModel/beneficiaryPaymentStatus.js";
-import path from "path";
-import mongoose from "mongoose";
+import { multiplyFractions } from "../../utils/helpers.js";
 
 // Controller to fetch all beneficiaries without any request parameters
 export const getAllbeneficiaryDisburmentlist = async (req, res) => {
@@ -23,12 +22,12 @@ export const getAllbeneficiaryDisburmentlist = async (req, res) => {
       .find({})
       .populate(
         "khatauniId",
-        "khatauniSankhya serialNumber khasraNumber acquiredKhasraNumber areaVariety acquiredRakbha"
+        "khatauniSankhya khasraNumber acquiredKhasraNumber areaVariety acquiredRakbha"
       )
       .populate("landPriceId", "landPricePerSqMtr")
       .populate("villageId", "villageName")
       .select(
-        "beneficiaryName beneficiaryStatus beneficiaryType beneficiaryShare acquiredBeneficiaryShare isDisputed khatauniId landPriceId villageId benefactorId legalHeirs isDocumentUploaded isDisbursementUploaded verificationStatus hasQuery verificationLevel"
+        "beneficiaryName serialNumber beneficiaryStatus beneficiaryType beneficiaryShare acquiredBeneficiaryShare isDisputed khatauniId landPriceId villageId benefactorId legalHeirs isDocumentUploaded isDisbursementUploaded verificationStatus hasQuery verificationLevel"
       );
 
     // Transform beneficiaries
@@ -53,7 +52,7 @@ export const getAllbeneficiaryDisburmentlist = async (req, res) => {
           villageId: b.villageId?._id || "",
           villageName: b.villageId?.villageName || "",
           khatauniSankhya: b.khatauniId?.khatauniSankhya || "",
-          serialNumber: b.khatauniId?.serialNumber || "",
+          serialNumber: b.serialNumber || "",
           khasraNumber: b.khatauniId?.khasraNumber || "",
           acquiredKhasraNumber: b.khatauniId?.acquiredKhasraNumber || "",
           areaVariety: b.khatauniId?.areaVariety || "",
@@ -103,7 +102,15 @@ export const getAllbeneficiaryDisburmentlist = async (req, res) => {
 
 // Controller to post disbursement details for multiple beneficiaries
 export const createDisbursementDetails = async (req, res) => {
-  const { beneficiaries } = req.body;
+  const {
+    beneficiaries,
+    bhumiCompensation,
+    faldaarBhumiCompensation,
+    gairFaldaarBhumiCompensation,
+    makaanCompensation,
+    villageId,
+    khatauniSankhya,
+  } = req.body;
 
   if (!beneficiaries || beneficiaries.length === 0) {
     return res.status(400).json({ message: "No beneficiaries provided" });
@@ -113,6 +120,23 @@ export const createDisbursementDetails = async (req, res) => {
     const userId = req.user.id; // Ensure userId is available
     if (!userId) {
       return res.status(400).json({ message: "User ID is missing" });
+    }
+
+    // Fetch the single KhatauniDetailsWeb document
+    const khatauniDetail = await KhatauniDetailsWeb.findOne({
+      villageId,
+      khatauniSankhya,
+    });
+
+    if (khatauniDetail) {
+      // Update the required fields
+      khatauniDetail.bhumiCompensation = bhumiCompensation;
+      khatauniDetail.faldaarBhumiCompensation = faldaarBhumiCompensation;
+      khatauniDetail.gairFaldaarBhumiCompensation =
+        gairFaldaarBhumiCompensation;
+      khatauniDetail.makaanCompensation = makaanCompensation;
+      // Save the updated document back to the database
+      await khatauniDetail.save();
     }
 
     const disbursementDetailsArray = await Promise.all(
@@ -230,10 +254,13 @@ export const disbursePage = catchAsyncError(async (req, res, next) => {
       );
     }
 
+    // Fetch beneficiaries
+    const beneficiariesList = await beneficiarDetails.find({
+      khatauniId: khatauniDetailsData[0]._id,
+    });
+
     // Extract beneficiary IDs from the fetched khatauni details
-    const beneficiaryIds = khatauniDetailsData.map(
-      (detail) => detail.beneficiaryId
-    );
+    const beneficiaryIds = beneficiariesList.map((detail) => detail._id);
 
     // Fetch all required details for each beneficiary
     const beneficiariesData = await Promise.all(
@@ -261,7 +288,9 @@ export const disbursePage = catchAsyncError(async (req, res, next) => {
           beneficiaryDocs.findOne({ beneficiaryId }),
           verifySchema.findOne({ beneficiaryId }),
           villageSchema.findOne({ _id: beneficiarySelfDetails?.villageId }),
-          KhatauniDetailsWeb.findOne({ beneficiaryId }),
+          KhatauniDetailsWeb.findOne({
+            _id: beneficiarySelfDetails?.khatauniId,
+          }),
           BeneficiaryQuery.findOne({ beneficiaryId }),
           beneficiarySelfDetails?.landPriceId
             ? landPrice.findOne({ _id: beneficiarySelfDetails.landPriceId })
@@ -285,7 +314,7 @@ export const disbursePage = catchAsyncError(async (req, res, next) => {
           beneficiaryType: beneficiarySelfDetails.beneficiaryType || "",
           benefactorId: beneficiarySelfDetails.benefactorId || "",
           legalHeirs: beneficiarySelfDetails.legalHeirs || [],
-          serialNumber: khatauniDetails?.serialNumber || "",
+          serialNumber: beneficiarySelfDetails.serialNumber || "",
           khasraNumber: khatauniDetails?.khasraNumber || "",
           acquiredKhasraNumber: khatauniDetails?.acquiredKhasraNumber || "",
           areaVariety: khatauniDetails?.areaVariety || "",
@@ -333,8 +362,6 @@ export const disbursePage = catchAsyncError(async (req, res, next) => {
             accountNumber: beneficiaryDocsUploadedList?.accountNumber || "",
             pancardNumber: beneficiaryDocsUploadedList?.panCardNumber || "",
             ifscCode: beneficiaryDocsUploadedList?.ifscCode || "",
-            // bankName: beneficiaryDocsUploadedList?.bankName || '',
-            // bankBranch: beneficiaryDocsUploadedList?.bankBranch || '',
             aadhaarNumber: beneficiaryDocsUploadedList?.aadhaarNumber || "",
             paymentInvoice: beneficiaryDocsUploadedList?.paymentInvoice || "",
           },
@@ -387,7 +414,7 @@ export const disbursePage = catchAsyncError(async (req, res, next) => {
 export const getAllBeneficiaries = async (req, res) => {
   try {
     const { villageId } = req.query;
-    const { role: userRole } = req.user; // Get user role from the authentication middleware
+    const { role: userRole } = req.user;
 
     if (!villageId) {
       return res
@@ -400,12 +427,131 @@ export const getAllBeneficiaries = async (req, res) => {
       .find({ villageId })
       .populate(
         "khatauniId",
-        "khatauniSankhya serialNumber khasraNumber acquiredKhasraNumber areaVariety acquiredRakbha"
+        "khatauniSankhya khasraNumber acquiredKhasraNumber areaVariety acquiredRakbha bhumiCompensation gairFaldaarBhumiCompensation faldaarBhumiCompensation makaanCompensation"
       )
       .populate("landPriceId", "landPricePerSqMtr")
       .populate("villageId", "villageName interestDays")
       .select(
-        "beneficiaryName beneficiaryStatus beneficiaryShare acquiredBeneficiaryShare isDisputed khatauniId landPriceId villageId benefactorId legalHeirs isDocumentUploaded isDisbursementUploaded"
+        "beneficiaryName beneficiaryStatus serialNumber beneficiaryShare acquiredBeneficiaryShare isDisputed khatauniId landPriceId villageId benefactorId legalHeirs isDocumentUploaded isDisbursementUploaded"
+      );
+
+    const transformedBeneficiaries = await Promise.all(
+      beneficiaries.map(async (b) => {
+        // Fetch verification details for the current beneficiary
+        const verificationData = await verifySchema.findOne({
+          beneficiaryId: b._id,
+        });
+
+        // If verificationData doesn't exist, default the verification level to 0
+        const verificationLevel = verificationData
+          ? verificationData.verificationLevel
+          : "0";
+
+        // Apply user role-based filtering
+        const isAllowed =
+          (userRole === "0" && verificationLevel === "0") ||
+          (userRole === "1" &&
+            (verificationLevel === "0" || verificationLevel === "1")) ||
+          (userRole === "2" &&
+            (verificationLevel === "1" || verificationLevel === "2")) ||
+          (userRole === "3" &&
+            (verificationLevel === "2" || verificationLevel === "3"));
+
+        // If not allowed, return null (which will be filtered out later)
+        if (!isAllowed) return null;
+
+        // Fetch disbursement details for each beneficiary
+        // const disbursementDetails = await beneficiarDisbursementDetails.findOne(
+        //   { beneficiaryId: b._id }
+        // );
+
+        return {
+          beneficiaryName: b.beneficiaryName,
+          beneficiaryId: b._id,
+          isDisputed: b.isDisputed,
+          beneficiaryStatus: b.beneficiaryStatus,
+          villageId: b.villageId?._id || "",
+          interestDays: b.villageId?.interestDays || 0,
+          villageName: b.villageId?.villageName || "",
+          khatauniSankhya: b.khatauniId?.khatauniSankhya || "",
+          serialNumber: b.serialNumber || "",
+          khasraNumber: b.khatauniId?.khasraNumber || "",
+          acquiredKhasraNumber: b.khatauniId?.acquiredKhasraNumber || "",
+          areaVariety: b.khatauniId?.areaVariety || "",
+          acquiredRakbha: b.khatauniId?.acquiredRakbha || "",
+          beneficiaryShare: b.beneficiaryShare,
+          acquiredBeneficiaryShare: b.acquiredBeneficiaryShare,
+          landPricePerSqMt: b.landPriceId?.landPricePerSqMtr || 0,
+          isDocumentsUploaded: b.isDocumentUploaded || "0",
+          isDisbursementUploaded: b.isDisbursementUploaded,
+          // bhumiCompensation: b.khatauniId?.bhumiCompensation || 0,
+          // faldaarBhumiCompensation: b.khatauniId?.faldaarBhumiCompensation || 0,
+          // gairFaldaarBhumiCompensation:
+          //   b.khatauniId?.gairFaldaarBhumiCompensation || 0,
+          // makaanCompensation: b.khatauniId?.makaanCompensation || 0,
+          // bhumiPrice: disbursementDetails?.bhumiPrice || 0,
+          // faldaarBhumiPrice: disbursementDetails?.faldaarBhumiPrice || 0,
+          // gairFaldaarBhumiPrice:
+          //   disbursementDetails?.gairFaldaarBhumiPrice || 0,
+          // housePrice: disbursementDetails?.housePrice || 0,
+          // toshan: disbursementDetails?.toshan || 0,
+          // interest: disbursementDetails?.interest || 0,
+          // totalCompensation: disbursementDetails?.totalCompensation || 0,
+          // vivran: disbursementDetails?.vivran || "",
+        };
+      })
+    );
+
+    // Filter out any null beneficiaries (i.e., those that didn't match the user role-based filter)
+    const filteredBeneficiaries = transformedBeneficiaries.filter(
+      (b) => b !== null
+    );
+
+    res.status(200).json({
+      success: true,
+      beneficiaries: filteredBeneficiaries,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error,
+    });
+  }
+};
+
+export const getKhatauniDetails = async (req, res) => {
+  try {
+    const { villageId, khatauniSankhya } = req.query;
+    const { role: userRole } = req.user;
+
+    if (!villageId || !khatauniSankhya) {
+      return res.status(400).json({
+        status: false,
+        message: "villageId and khatauniSankhya both is required",
+      });
+    }
+
+    // Fetch the khatauni details
+    const khatauniDetailsData = await KhatauniDetailsWeb.find({
+      villageId,
+      khatauniSankhya,
+    })
+      .populate("landPriceId", "landPricePerSqMtr")
+      .populate("villageId", "interestDays")
+      .select(
+        "landPriceId villageId totalAcquiredBhumi khatauniSankhya bhumiCompensation gairFaldaarBhumiCompensation faldaarBhumiCompensation makaanCompensation"
+      );
+    if (!khatauniDetailsData.length) {
+      return next(new ErrorHandler("Invalid khatauni sankhya", 404));
+    }
+    // Fetch beneficiaries
+    const beneficiaries = await beneficiarDetails
+      .find({
+        khatauniId: khatauniDetailsData[0]._id,
+      })
+      .select(
+        "villageId beneficiaryName serialNumber beneficiaryShare acquiredBeneficiaryShare"
       );
 
     const transformedBeneficiaries = await Promise.all(
@@ -439,25 +585,11 @@ export const getAllBeneficiaries = async (req, res) => {
         );
 
         return {
-          beneficiaryName: b.beneficiaryName,
           beneficiaryId: b._id,
-          isDisputed: b.isDisputed,
-          beneficiaryStatus: b.beneficiaryStatus,
-          villageId: b.villageId?._id || "",
-          interestDays: b.villageId?.interestDays || 0,
-          villageName: b.villageId?.villageName || "",
-          khatauniSankhya: b.khatauniId?.khatauniSankhya || "",
-          serialNumber: b.khatauniId?.serialNumber || "",
-          khasraNumber: b.khatauniId?.khasraNumber || "",
-          acquiredKhasraNumber: b.khatauniId?.acquiredKhasraNumber || "",
-          areaVariety: b.khatauniId?.areaVariety || "",
-          acquiredRakbha: b.khatauniId?.acquiredRakbha || "",
+          beneficiaryName: b.beneficiaryName,
+          serialNumber: b.serialNumber || "",
           beneficiaryShare: b.beneficiaryShare,
           acquiredBeneficiaryShare: b.acquiredBeneficiaryShare,
-          landPricePerSqMt: b.landPriceId?.landPricePerSqMtr || "",
-          isDocumentsUploaded: b.isDocumentUploaded || "0",
-          isDisbursementUploaded: b.isDisbursementUploaded, // This should fetch the exact value from the collection
-          // If disbursement details exist, use them; otherwise, default to zeros
           bhumiPrice: disbursementDetails?.bhumiPrice || 0,
           faldaarBhumiPrice: disbursementDetails?.faldaarBhumiPrice || 0,
           gairFaldaarBhumiPrice:
@@ -478,6 +610,7 @@ export const getAllBeneficiaries = async (req, res) => {
 
     res.status(200).json({
       success: true,
+      khatauniDetails: khatauniDetailsData[0],
       beneficiaries: filteredBeneficiaries,
     });
   } catch (error) {
@@ -556,8 +689,13 @@ export const verifyBeneficiaryDetails = catchAsyncError(
   async (req, res, next) => {
     try {
       // Log the req.user object to ensure it's attached by the middleware
-      const { beneficiaryId, status, rejectionMessage, revokedMessage } =
-        req.body;
+      const {
+        beneficiaryId,
+        status,
+        rejectionMessage,
+        revokedMessage,
+        revertMessage,
+      } = req.body;
 
       // Ensure that req.user is properly populated
       if (!req.user) {
@@ -590,9 +728,10 @@ export const verifyBeneficiaryDetails = catchAsyncError(
           updatedBy,
           userRole,
           userId,
-          status,
+          status: status === "3" ? "0" : status,
           verificationLevel: status === "1" ? "1" : "0",
           rejectionMessage: status === "0" ? rejectionMessage : "",
+          revertMessage: status === "3" ? revertMessage : "",
           history: [
             {
               userId,
@@ -648,10 +787,34 @@ export const verifyBeneficiaryDetails = catchAsyncError(
           verificationDetails.userRole = userRole;
           verificationDetails.status = userRole === "1" ? "" : "1";
           verificationDetails.revokedMessage = rejectionMessage;
+        } else if (status === "3") {
+          const newHistory = {
+            userId,
+            status: "",
+            userRole: userRole,
+            updatedBy: updatedBy,
+            revertMessage,
+            updatedAt: new Date(),
+          };
+          verificationDetails.history.push(newHistory);
+          verificationDetails.updatedBy = updatedBy;
+          verificationDetails.userRole = userRole;
+          verificationDetails.status = "0";
+          verificationDetails.verificationLevel = "0";
+          verificationDetails.revertMessage = revertMessage;
         } else {
           throw new ErrorHandler("Invalid status value", 400);
         }
         await verificationDetails.save();
+      }
+
+      if (status === "3") {
+        // Fetch beneficiary disbursement details
+        let disbursementDetails = await beneficiarDisbursementDetails.findOne({
+          beneficiaryId,
+        });
+        disbursementDetails.isDisbursementUploaded = "0";
+        await disbursementDetails.save();
       }
 
       let beneficiaryQuery = await BeneficiaryQuery.findOne({ beneficiaryId });
@@ -689,6 +852,18 @@ export const verifyBeneficiaryDetails = catchAsyncError(
             userId: userId,
             updatedAt: new Date(),
             message: `---@revoked@---${revokedMessage}`,
+            userRole: userRole,
+            name: updatedBy,
+          };
+          beneficiaryQuery.queryMessages.push(revokedQueryMessage);
+        }
+
+        if (status === "3") {
+          // Add the revoking message to queryMessages array
+          const revokedQueryMessage = {
+            userId: userId,
+            updatedAt: new Date(),
+            message: `---@revert@---${revertMessage}`,
             userRole: userRole,
             name: updatedBy,
           };
@@ -741,6 +916,19 @@ export const verifyBeneficiaryDetails = catchAsyncError(
           };
           beneficiaryQuery.queryMessages.push(revokedQueryMessage);
         }
+
+        if (status === "3") {
+          // Add the revoking message to queryMessages array
+          const revokedQueryMessage = {
+            userId: userId,
+            updatedAt: new Date(),
+            message: `---@revert@---${revertMessage}`,
+            userRole: userRole,
+            name: updatedBy,
+          };
+          beneficiaryQuery.queryMessages.push(revokedQueryMessage);
+        }
+
         await beneficiaryQuery.save();
       }
 
@@ -802,6 +990,14 @@ export const verifyBeneficiaryDetails = catchAsyncError(
           data: verificationDetails,
         });
       }
+      if (status === "3") {
+        return res.status(200).json({
+          success: true,
+          message: "Beneficiary reverted successfully",
+          revokedMessage,
+          data: verificationDetails,
+        });
+      }
     } catch (error) {
       next(error);
     }
@@ -816,11 +1012,11 @@ export const getAllBeneficiariesPaymentStatus = async (req, res) => {
       .find()
       .populate(
         "khatauniId",
-        "khatauniSankhya serialNumber khasraNumber acquiredKhasraNumber areaVariety acquiredRakbha"
+        "khatauniSankhya khasraNumber acquiredKhasraNumber areaVariety acquiredRakbha"
       ) // Populating khatauni details
       .populate("villageId", "villageName") // Populating village name from villageListSchema
       .select(
-        "beneficiaryName beneficiaryStatus beneficiaryShare acquiredBeneficiaryShare khatauniId landPriceId villageId"
+        "beneficiaryName beneficiaryStatus serialNumber beneficiaryShare acquiredBeneficiaryShare khatauniId landPriceId villageId"
       );
 
     if (beneficiaries.length === 0) {
@@ -846,7 +1042,7 @@ export const getAllBeneficiariesPaymentStatus = async (req, res) => {
             villageName: b.villageId?.villageName || "",
             villageId: b.villageId?._id,
             khatauniSankhya: b.khatauniId?.khatauniSankhya || "",
-            serialNumber: b.khatauniId?.serialNumber || "",
+            serialNumber: b.serialNumber || "",
             khasraNumber: b.khatauniId?.khasraNumber || "",
             acquiredKhasraNumber: b.khatauniId?.acquiredKhasraNumber || "",
             areaVariety: b.khatauniId?.areaVariety || "",
@@ -878,12 +1074,12 @@ export const getAllBeneficiariesPaymentStatus = async (req, res) => {
 
 // Controller for adding legal heir
 export const addLegalHeir = async (req, res) => {
-  const { beneficiaries, beneficiaryId, beneficiaryType } = req.body; // Destructure payload from frontend
+  const { legalHeirs, beneficiaryId, beneficiaryType } = req.body;
   const userId = req.user.id;
   const updatedBy = req.user.name;
   const userRole = req.user.role;
 
-  if (!beneficiaryId || !beneficiaries || !beneficiaryType) {
+  if (!beneficiaryId || !legalHeirs || !beneficiaryType) {
     return res
       .status(400)
       .json({ success: false, message: "All fields are required." });
@@ -907,16 +1103,6 @@ export const addLegalHeir = async (req, res) => {
         .json({ success: false, message: "Disbursement details not found." });
     }
 
-    // Fetch the Khatauni details for the original beneficiary
-    const originalKhatauni = await KhatauniDetailsWeb.findOne({
-      beneficiaryId,
-    });
-    if (!originalKhatauni) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Khatauni details not found." });
-    }
-
     // Fetch existing verification record (if exists)
     let verificationDetails = await verifySchema.findOne({ beneficiaryId });
     // If no verification record exists, create a new one
@@ -926,7 +1112,6 @@ export const addLegalHeir = async (req, res) => {
         updatedBy,
         userRole,
         userId,
-        // status: "",
         verificationLevel: "4",
       });
     } else {
@@ -934,7 +1119,6 @@ export const addLegalHeir = async (req, res) => {
       verificationDetails.userId = updatedBy;
       verificationDetails.userId = userRole;
       verificationDetails.userId = userId;
-      // verificationDetails.status = "";
       verificationDetails.verificationLevel = "4";
       await verificationDetails.save();
     }
@@ -947,17 +1131,24 @@ export const addLegalHeir = async (req, res) => {
     const disbursementPromises = [];
     const khatauniPromises = [];
 
-    for (let index = 0; index < beneficiaries.length; index++) {
-      const beneficiary = beneficiaries[index];
+    for (let index = 0; index < legalHeirs.length; index++) {
+      const beneficiary = legalHeirs[index];
 
       // Create new Beneficiary
+      const newSerialNumber = `${existingBeneficiary?.serialNumber}.${
+        index + 1
+      }`;
       const newBeneficiary = new beneficiarDetails({
         beneficiaryName: beneficiary.name,
         beneficiaryStatus: "active",
-        beneficiaryShare: `${existingBeneficiary.beneficiaryShare}-${beneficiary.percentage}%`,
+        serialNumber: newSerialNumber,
+        beneficiaryShare: multiplyFractions(
+          existingBeneficiary.beneficiaryShare,
+          `${beneficiary.bhumiShare}/${100}`
+        ),
         acquiredBeneficiaryShare: `0-00-${parseFloat(
           existingBeneficiary.acquiredBeneficiaryShare.split("-").join("") *
-            (beneficiary.percentage / 100) || 0
+            (beneficiary.bhumiShare / 100)
         ).toFixed(2)}`,
         beneficiaryType: beneficiaryType === "poa" ? "poah" : "nokh",
         benefactorId: beneficiaryId,
@@ -970,6 +1161,7 @@ export const addLegalHeir = async (req, res) => {
         hasQuery: "0",
         villageId: existingBeneficiary.villageId,
         landPriceId: existingBeneficiary.landPriceId,
+        khatauniId: existingBeneficiary.khatauniId,
         update: {
           userId,
           updatedAt: new Date(),
@@ -980,66 +1172,25 @@ export const addLegalHeir = async (req, res) => {
       const savedBeneficiary = await newBeneficiary.save();
       newBeneficiaries.push(savedBeneficiary);
 
-      // Create new disbursement details using the original disbursement details and percentage
+      // Create new disbursement details using the original disbursement details
       const disbursementDetails = new beneficiarDisbursementDetails({
-        bhumiPrice:
-          parseFloat(
-            originalDisbursementDetails.bhumiPrice *
-              (beneficiary.percentage / 100)
-          ).toFixed(2) || 0,
-        faldaarBhumiPrice:
-          parseFloat(
-            originalDisbursementDetails.faldaarBhumiPrice *
-              (beneficiary.percentage / 100)
-          ).toFixed(2) || 0,
-        gairFaldaarBhumiPrice:
-          parseFloat(
-            originalDisbursementDetails.gairFaldaarBhumiPrice *
-              (beneficiary.percentage / 100)
-          ).toFixed(2) || 0,
+        bhumiPrice: 0,
+        faldaarBhumiPrice: 0,
+        gairFaldaarBhumiPrice: 0,
         housePrice:
           parseFloat(
             originalDisbursementDetails.housePrice *
-              (beneficiary.percentage / 100)
+              (beneficiary.makaanShare / 100)
           ).toFixed(2) || 0,
-        toshan:
-          parseFloat(
-            originalDisbursementDetails.toshan * (beneficiary.percentage / 100)
-          ).toFixed(2) || 0,
-        interest:
-          parseFloat(
-            originalDisbursementDetails.interest *
-              (beneficiary.percentage / 100)
-          ).toFixed(2) || 0,
-        totalCompensation:
-          parseFloat(
-            originalDisbursementDetails.totalCompensation *
-              (beneficiary.percentage / 100)
-          ).toFixed(2) || 0,
+        toshan: 0,
+        interest: 0,
+        totalCompensation: 0,
         villageId: originalDisbursementDetails.villageId,
         beneficiaryId: savedBeneficiary._id,
         update: { userId, updatedAt: new Date(), action: "0" },
       });
       const savedDisbursementDetails = await disbursementDetails.save();
       disbursementPromises.push(savedDisbursementDetails);
-
-      // Create new KhatauniDetails
-      const newSerialNumber = `${originalKhatauni.serialNumber}.${index + 1}`;
-      const newKhatauni = new KhatauniDetailsWeb({
-        ...originalKhatauni.toObject(),
-        _id: new mongoose.Types.ObjectId(),
-        serialNumber: newSerialNumber,
-        beneficiaryId: savedBeneficiary._id,
-        update: {
-          userId,
-          updatedAt: new Date(),
-          action: "0",
-        },
-      });
-      const savedKhatauni = await newKhatauni.save();
-      khatauniPromises.push(savedKhatauni);
-      savedBeneficiary.khatauniId = savedKhatauni._id;
-      await savedBeneficiary.save();
     }
 
     // Update the original beneficiary with new legalHeirs

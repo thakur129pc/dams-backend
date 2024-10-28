@@ -6,21 +6,19 @@ import Beneficiary from "../webModel/benificiaryDetail.js";
 import KhatauniDetails from "../webModel/khatauniDetailsSchema.js";
 import LandPrice from "../webModel/landPrice.js";
 import VillageList from "../webModel/villageListSchema.js";
-import BeneficiarDisbursementDetails from "../webModel/beneficiaryDisbursementDetails.js";
-import OldBeneficiarDisbursement from "../webModel/beneficiaryDisbursementDetails - old Data.js";
-import { fileURLToPath } from "url";
+import BeneficiaryDisbursementDetails from "../webModel/beneficiaryDisbursementDetails.js";
+import OldBeneficiaryDisbursement from "../webModel/beneficiaryDisbursementDetails - old Data.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const uploadExcel = async (req, res) => {
+export const uploadExcel = async (req, res) => {
   if (!req.file) {
     return res
       .status(400)
       .json({ success: false, message: "No file uploaded." });
   }
+
   const { villageId } = req.body;
   const userId = req.user.id;
+
   const sanitizedVillageId = sanitize(villageId, {
     allowedTags: [],
     allowedAttributes: {},
@@ -30,178 +28,338 @@ const uploadExcel = async (req, res) => {
       .status(400)
       .json({ success: false, message: "Invalid villageId." });
   }
+
   try {
     const filePath = path.resolve("public/uploads", req.file.filename);
-    if (!fs.existsSync(filePath)) {
-      throw new Error("File not found");
-    }
+    if (!fs.existsSync(filePath)) throw new Error("File not found");
+
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(filePath);
     const worksheet = workbook.getWorksheet(1);
-    const columnMappings = {
-      A: "khatauniSankhya",
-      C: "beneficiaryName",
-      H: "beneficiaryShare",
-      I: "acquiredBeneficiaryShare",
-      B: "serialNumber",
-      D: "khasraNumber",
-      E: "areaVariety",
-      F: "acquiredKhasraNumber",
-      G: "acquiredRakbha",
-      J: "landPricePerSqMtr",
-      K: "bhumiPrice",
-      L: "faldaarBhumiPrice",
-      M: "gairFaldaarBhumiPrice",
-      N: "housePrice",
-      P: "toshan",
-      R: "interest",
-      S: "totalCompensation",
-      T: "vivran",
-    };
-    const beneficiaryPromises = [];
     const processedRows = new Set();
-    let landPriceDetail = {};
     let landPriceId = null;
-    let landPricePerSqMtr = worksheet.getRow(2).getCell("J").value;
-    if (landPricePerSqMtr) {
-      landPricePerSqMtr = sanitize(landPricePerSqMtr.toString()).trim();
-      const existingLandPrice = await LandPrice.findOne({
-        landPricePerSqMtr,
-        villageId: sanitizedVillageId,
-      });
-      if (existingLandPrice) {
-        landPriceId = existingLandPrice._id;
-      } else {
-        landPriceDetail = {
-          landPricePerSqMtr: landPricePerSqMtr,
-          villageId: sanitizedVillageId,
-          update: { userId, updatedAt: new Date(), action: "0" },
-        };
-        const savedLandPrice = await LandPrice.create(landPriceDetail);
-        landPriceId = savedLandPrice._id;
-      }
-    }
-    worksheet.eachRow({ includeEmpty: false }, async (row, rowNumber) => {
-      if (rowNumber > 1) {
-        let khatauniSankhya = row.getCell("A").value;
-        let serialNumber = row.getCell("B").value;
-        let beneficiaryName = sanitize(row.getCell("C").value?.trim() || "");
-        if (isNaN(serialNumber)) {
-          return;
-        }
-        serialNumber = Number(serialNumber);
-        if (khatauniSankhya && serialNumber && beneficiaryName) {
-          const uniqueKey = `${khatauniSankhya}-${serialNumber}-${beneficiaryName}`;
-          if (processedRows.has(uniqueKey)) {
-            return;
-          }
-          processedRows.add(uniqueKey);
-          const existingKhatauniDetail = await KhatauniDetails.findOne({
-            khatauniSankhya,
-            serialNumber,
-          });
-          const existingBeneficiary = await Beneficiary.findOne({
-            khatauniSankhya,
-            serialNumber,
-            beneficiaryName,
-          });
-          if (existingKhatauniDetail || existingBeneficiary) {
-            return;
-          }
 
-          if (typeof khatauniSankhya === "number" && !isNaN(khatauniSankhya)) {
-            const beneficiary = {};
-            const khatauniDetail = {};
-            beneficiary.khatauniSankhya = sanitize(
-              khatauniSankhya.toString()
-            ).trim();
-            khatauniDetail.khatauniSankhya = sanitize(
-              khatauniSankhya.toString()
-            ).trim();
-            for (const [col, field] of Object.entries(columnMappings)) {
-              let cellValue = row.getCell(col).value;
-              if (cellValue instanceof Date) {
-                cellValue = cellValue.toLocaleDateString("en-US");
-              } else if (typeof cellValue === "string") {
-                cellValue = sanitize(cellValue).replace(/\n/g, " ").trim();
-              }
-              if (["A", "C", "H", "I"].includes(col)) {
-                beneficiary[field] = cellValue || "";
-              } else {
-                khatauniDetail[field] = cellValue || "";
-              }
-            }
-            beneficiary.villageId = sanitizedVillageId;
-            beneficiary.update = { userId, updatedAt: new Date(), action: "0" };
-            khatauniDetail.villageId = sanitizedVillageId;
-            khatauniDetail.update = {
-              userId,
-              updatedAt: new Date(),
-              action: "0",
-            };
-            const beneficiaryPromise = (async () => {
-              const savedBeneficiary = await Beneficiary.create(beneficiary);
-              khatauniDetail.beneficiaryId = savedBeneficiary._id;
-              const savedKhatauniDetails = await KhatauniDetails.create(
-                khatauniDetail
-              );
-              await Beneficiary.findOneAndUpdate(
-                { _id: khatauniDetail.beneficiaryId },
-                {
-                  $set: {
-                    khatauniId: savedKhatauniDetails._id,
-                    landPriceId: landPriceId,
-                  },
-                },
-                { upsert: true, new: true }
-              );
-              const disbursementDetails = {
-                bhumiPrice: sanitize(row.getCell("K").value?.toString() || "0"),
-                faldaarBhumiPrice: sanitize(
-                  row.getCell("L").value?.toString() || "0"
-                ),
-                gairFaldaarBhumiPrice: sanitize(
-                  row.getCell("M").value?.toString() || "0"
-                ),
-                housePrice: sanitize(row.getCell("N").value?.toString() || "0"),
-                toshan: sanitize(row.getCell("P").value?.toString() || "0"),
-                interest: sanitize(row.getCell("R").value?.toString() || "0"),
-                totalCompensation: sanitize(
-                  row.getCell("S").value?.toString() || "0"
-                ),
-                villageId: sanitizedVillageId,
-                beneficiaryId: savedBeneficiary._id,
-                update: { userId, updatedAt: new Date(), action: "0" },
-              };
-              await BeneficiarDisbursementDetails.create(disbursementDetails);
-              await OldBeneficiarDisbursement.create(disbursementDetails);
-            })();
-            beneficiaryPromises.push(beneficiaryPromise);
-          }
-        }
-      }
+    // Fetch any existing LandPrice and KhatauniDetails once
+    const existingLandPrices = await LandPrice.find({
+      villageId: sanitizedVillageId,
     });
 
-    await Promise.all(beneficiaryPromises);
+    // Process land price per square meter (bulk insert if needed)
+    for (
+      let rowNumber = 2;
+      rowNumber <= worksheet.lastRow.number;
+      rowNumber++
+    ) {
+      const row = worksheet.getRow(rowNumber);
+      const serialNumber = Number(row.getCell("B").value);
+      if (isNaN(serialNumber)) {
+        const landPricePerSqMtr = sanitize(
+          row.getCell("J").value?.toString() || ""
+        ).trim();
+        if (landPricePerSqMtr) {
+          const existingLandPrice = existingLandPrices.find(
+            (lp) => lp.landPricePerSqMtr === landPricePerSqMtr
+          );
+          if (existingLandPrice) {
+            landPriceId = existingLandPrice._id;
+          } else {
+            const newLandPrice = await LandPrice.create({
+              landPricePerSqMtr,
+              villageId: sanitizedVillageId,
+              update: { userId, updatedAt: new Date(), action: "0" },
+            });
+            landPriceId = newLandPrice._id;
+          }
+          break;
+        }
+      }
+    }
 
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    let lastValidKhatauniSankhya = null;
+    for (
+      let rowNumber = 2;
+      rowNumber <= worksheet.lastRow.number;
+      rowNumber++
+    ) {
+      const row = worksheet.getRow(rowNumber);
+      const khatauniSankhya = row.getCell("A").value;
+      const serialNumber = Number(row.getCell("B").value);
 
-    // Fetch beneficiaries based on villageId
-    let beneficiaries = await Beneficiary
-      .find({ villageId })
+      const beneficiaryName = sanitize(
+        row.getCell("C").value?.toString() || ""
+      );
+
+      if (serialNumber === 1 && !lastValidKhatauniSankhya) {
+        lastValidKhatauniSankhya = khatauniSankhya;
+      }
+
+      if (!isNaN(serialNumber)) {
+        lastValidKhatauniSankhya = khatauniSankhya;
+      } else if (isNaN(serialNumber) && lastValidKhatauniSankhya) {
+        let bhumiCompensation = sanitize(
+          row.getCell("K").value?.toString()
+        ).trim();
+        let faldaarBhumiCompensation = sanitize(
+          row.getCell("L").value?.toString()
+        ).trim();
+        let gairFaldaarBhumiCompensation = sanitize(
+          row.getCell("M").value?.toString()
+        ).trim();
+        let makaanCompensation = sanitize(
+          row.getCell("N").value?.toString()
+        ).trim();
+        let totalAcquiredBhumi = sanitize(
+          row.getCell("I").value?.toString()
+        ).trim();
+
+        const updateFields = {};
+        if (bhumiCompensation)
+          updateFields.bhumiCompensation = bhumiCompensation;
+        if (faldaarBhumiCompensation)
+          updateFields.faldaarBhumiCompensation = faldaarBhumiCompensation;
+        if (gairFaldaarBhumiCompensation)
+          updateFields.gairFaldaarBhumiCompensation =
+            gairFaldaarBhumiCompensation;
+        if (makaanCompensation)
+          updateFields.makaanCompensation = makaanCompensation;
+        if (totalAcquiredBhumi)
+          updateFields.totalAcquiredBhumi = parseFloat(
+            totalAcquiredBhumi.split("-").join("")
+          );
+        updateFields.landPriceId = landPriceId;
+
+        if (Object.keys(updateFields).length > 0) {
+          await KhatauniDetails.updateOne(
+            {
+              khatauniSankhya: lastValidKhatauniSankhya,
+              villageId: sanitizedVillageId,
+            },
+            { $set: updateFields },
+            { upsert: true }
+          );
+        }
+        continue;
+      }
+
+      if (khatauniSankhya && serialNumber && beneficiaryName) {
+        const uniqueKey = `${khatauniSankhya}-${serialNumber}-${beneficiaryName}`;
+
+        if (processedRows.has(uniqueKey)) continue;
+        processedRows.add(uniqueKey);
+
+        const existingBeneficiary = await Beneficiary.findOne({
+          serialNumber,
+          beneficiaryName,
+        });
+        if (existingBeneficiary) {
+          return res.status(409).json({
+            success: false,
+            message:
+              "Duplicate entries found. The data has already been uploaded.",
+          });
+        }
+
+        const existingKhatauniDetails = await KhatauniDetails.findOne({
+          villageId: sanitizedVillageId,
+          khatauniSankhya,
+        });
+        let khatauniId = null;
+
+        if (!existingKhatauniDetails) {
+          const newKhatauni = await KhatauniDetails.create({
+            khatauniSankhya,
+            khasraNumber: sanitize(
+              (Array.isArray(row.getCell("D").value)
+                ? row.getCell("D").value.join(", ")
+                : row.getCell("D").value?.toString() || ""
+              )
+                .replace(/\s+/g, " ")
+                .replace(/\n|\r/g, " ")
+            ),
+            acquiredKhasraNumber: sanitize(
+              (Array.isArray(row.getCell("F").value)
+                ? row
+                    .getCell("F")
+                    .value.map((item) => item.toString())
+                    .join(", ")
+                : row.getCell("F").value?.toString() || ""
+              )
+                .replace(/\s+/g, " ")
+                .replace(/\n|\r/g, " ")
+            ),
+            areaVariety: sanitize(
+              (Array.isArray(row.getCell("E").value)
+                ? row.getCell("E").value.join(", ")
+                : row.getCell("E").value?.toString() || ""
+              )
+                .replace(/\s+/g, " ")
+                .replace(/\n|\r/g, " ")
+            ),
+            acquiredRakbha: sanitize(
+              (Array.isArray(row.getCell("G").value)
+                ? row.getCell("G").value.join(", ")
+                : row.getCell("G").value?.toString() || ""
+              )
+                .replace(/\s+/g, " ")
+                .replace(/\n|\r/g, " ")
+            ),
+            update: { userId, updatedAt: new Date(), action: "0" },
+            villageId: sanitizedVillageId,
+          });
+          khatauniId = newKhatauni._id;
+        } else {
+          khatauniId = existingKhatauniDetails._id;
+        }
+
+        const beneficiary = {
+          khatauniSankhya: sanitize(String(khatauniSankhya)).trim(),
+          serialNumber,
+          beneficiaryName,
+          beneficiaryShare: sanitize(
+            getCellValue(row.getCell("H").value)?.toString().trim() || ""
+          ),
+          acquiredBeneficiaryShare: sanitize(
+            getCellValue(row.getCell("I").value)?.toString().trim() || ""
+          ),
+          villageId: sanitizedVillageId,
+          landPriceId,
+          khatauniId,
+          update: { userId, updatedAt: new Date(), action: "0" },
+        };
+
+        const savedBeneficiary = await Beneficiary.create(beneficiary);
+
+        function getCellValue(cell) {
+          if (typeof cell === "object" && cell !== null) {
+            return cell.result ? cell.result.toString() : JSON.stringify(cell);
+          }
+          return cell ? cell.toString() : "";
+        }
+        function customSanitize(input) {
+          if (!input) return "";
+          return input
+            .replace(
+              /[^\u0900-\u097F\u0020-\u007E\u0966-\u096F\u2000-\u206F]/g,
+              ""
+            )
+            .trim();
+        }
+        function extractText(richText) {
+          const extractedText = richText
+            .map((item) => {
+              // Extract the text from each item and clean it up
+              const match = item.text.match(/"text":"(.*?)"/);
+              return match ? match[1] : ""; // Return the matched text or an empty string
+            })
+            .filter((text) => text.trim() !== "") // Filter out any empty strings
+            .join(" ");
+          return extractedText;
+        }
+        const vivranData = { richText: [] };
+        const rawVivran = getCellValue(row.getCell("T").value);
+        const segments = rawVivran.split(/,\s*|\.\s*|\s+:/).filter(Boolean);
+        segments.forEach((segment) => {
+          vivranData.richText.push({
+            text: customSanitize(segment),
+          });
+        });
+        const extractedVivranText = extractText(vivranData.richText);
+        // Ensure that vivran contains only the plain text extracted from richText
+        const disbursementDetails = {
+          bhumiPrice:
+            Number(customSanitize(getCellValue(row.getCell("K").value))) || 0,
+          faldaarBhumiPrice:
+            Number(customSanitize(getCellValue(row.getCell("L").value))) || 0,
+          gairFaldaarBhumiPrice:
+            Number(customSanitize(getCellValue(row.getCell("M").value))) || 0,
+          housePrice:
+            Number(customSanitize(getCellValue(row.getCell("N").value))) || 0,
+          toshan:
+            String(customSanitize(getCellValue(row.getCell("P").value))) || "0",
+          interest:
+            String(customSanitize(getCellValue(row.getCell("R").value))) || "0",
+          totalCompensation:
+            Number(customSanitize(getCellValue(row.getCell("S").value))) || 0,
+          vivran: extractedVivranText, // yaha vivran aayega after removing all the special n hidden chars.
+          isDisbursementUploaded: "0",
+          isConsent: "0",
+          isApproved: "0",
+          isRejected: "0",
+          rejectedMessage: customSanitize(getCellValue(row.getCell("Z").value)),
+          updatedAt: new Date(),
+          update: {
+            userId,
+            updatedAt: new Date(),
+            action: "0",
+          },
+          villageId: sanitizedVillageId,
+          beneficiaryId: savedBeneficiary._id,
+        };
+        const convertFields = (details) => {
+          return {
+            bhumiPrice: Number(details.bhumiPrice),
+            faldaarBhumiPrice: Number(details.faldaarBhumiPrice),
+            gairFaldaarBhumiPrice: Number(details.gairFaldaarBhumiPrice),
+            housePrice: Number(details.housePrice),
+            toshan: String(details.toshan),
+            interest: String(details.interest),
+            totalCompensation: Number(details.totalCompensation),
+            villageId: String(details.villageId),
+            beneficiaryId: String(details.beneficiaryId),
+            vivran: details.vivran,
+            update: {
+              userId: String(details.update.userId),
+              updatedAt: details.update.updatedAt,
+              action: String(details.update.action),
+            },
+          };
+        };
+        const typedDisbursementDetails = convertFields(disbursementDetails);
+        await BeneficiaryDisbursementDetails.updateOne(
+          {
+            beneficiaryId: savedBeneficiary._id,
+            villageId: sanitizedVillageId,
+          },
+          { $set: typedDisbursementDetails },
+          { upsert: true }
+        );
+        await OldBeneficiaryDisbursement.updateOne(
+          {
+            beneficiaryId: savedBeneficiary._id,
+            villageId: sanitizedVillageId,
+          },
+          { $set: typedDisbursementDetails },
+          { upsert: true }
+        );
+      }
+    }
+
+    const beneficiaries = await Beneficiary.find({
+      villageId: sanitizedVillageId,
+    })
       .populate("khatauniId", "khatauniSankhya serialNumber")
       .select("acquiredBeneficiaryShare");
 
     const khatauniSankhyaSet = new Set();
-    let aquiredVillageArea = 0;
+    let acquiredVillageArea = 0;
 
-    beneficiaries.forEach((beneficiary) => {
-      khatauniSankhyaSet.add(beneficiary.khatauniId.khatauniSankhya);
-      let acquiredBeneficiaryArea = parseFloat(
-        beneficiary.acquiredBeneficiaryShare.split("-").join("")
-      );
-      aquiredVillageArea += acquiredBeneficiaryArea;
-    });
+    if (Array.isArray(beneficiaries) && beneficiaries.length > 0) {
+      beneficiaries.forEach((beneficiary) => {
+        if (beneficiary.khatauniId) {
+          khatauniSankhyaSet.add(beneficiary.khatauniId.khatauniSankhya);
+
+          const acquiredShare = beneficiary.acquiredBeneficiaryShare
+            ? parseFloat(
+                beneficiary.acquiredBeneficiaryShare.split("-").join("")
+              )
+            : 0;
+
+          if (typeof acquiredShare === "number") {
+            acquiredVillageArea += acquiredShare;
+          }
+        }
+      });
+    }
 
     await VillageList.findOneAndUpdate(
       { _id: villageId },
@@ -209,22 +367,25 @@ const uploadExcel = async (req, res) => {
         $set: {
           khatauni: khatauniSankhyaSet.size,
           totalBeneficiaries: beneficiaries.length,
-          villageArea: aquiredVillageArea,
-          landPriceId: landPriceId,
+          villageArea: String(acquiredVillageArea),
+          landPriceId,
           update: { userId, updatedAt: new Date(), action: "0" },
         },
-      }
-    );
+      },
+      { new: true }
+    ).catch((err) => {
+      console.error("Error updating village:", err);
+    });
+
     res.status(200).json({
       success: true,
       message: "Beneficiaries records uploaded successfully",
     });
   } catch (error) {
-    console.error("Error processing file:", error.message);
+    console.error("Error processing Excel upload:", error.message);
     res.status(500).json({
       success: false,
-      message: "An error occurred while processing the file",
+      message: `Error processing file: ${error.message}`,
     });
   }
 };
-export { uploadExcel };
