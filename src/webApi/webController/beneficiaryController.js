@@ -1,4 +1,4 @@
-import beneficiarDetails from "../webModel/benificiaryDetail.js"; // Adjust the path based on your project structure
+import beneficiaryDetails from "../webModel/benificiaryDetail.js"; // Adjust the path based on your project structure
 import beneficiarDisbursementDetails from "../webModel/beneficiaryDisbursementDetails.js";
 import KhatauniDetailsWeb from "../webModel/khatauniDetailsSchema.js";
 import { catchAsyncError } from "../../middleware/catchAsyncError.js";
@@ -18,7 +18,7 @@ export const getAllbeneficiaryDisburmentlist = async (req, res) => {
     const { role: userRole } = req.user;
 
     // Fetch all beneficiaries
-    const beneficiaries = await beneficiarDetails
+    const beneficiaries = await beneficiaryDetails
       .find({})
       .populate(
         "khatauniId",
@@ -128,13 +128,14 @@ export const createDisbursementDetails = async (req, res) => {
       khatauniSankhya,
     });
 
-    if (khatauniDetail) {
+    if (khatauniDetail && khatauniDetail.isDisbursementSubmitted === "0") {
       // Update the required fields
       khatauniDetail.bhumiCompensation = bhumiCompensation;
       khatauniDetail.faldaarBhumiCompensation = faldaarBhumiCompensation;
       khatauniDetail.gairFaldaarBhumiCompensation =
         gairFaldaarBhumiCompensation;
       khatauniDetail.makaanCompensation = makaanCompensation;
+      khatauniDetail.isDisbursementSubmitted = "1";
       // Save the updated document back to the database
       await khatauniDetail.save();
     }
@@ -142,7 +143,7 @@ export const createDisbursementDetails = async (req, res) => {
     const disbursementDetailsArray = await Promise.all(
       beneficiaries.map(async (beneficiary) => {
         // Fetch villageId from beneficiarDetailsSchema using beneficiaryId
-        const beneficiaryDetails = await beneficiarDetails
+        const beneficiaryDetails = await beneficiaryDetails
           .findById(beneficiary.beneficiaryId)
           .select("villageId isDisbursementUploaded");
         if (!beneficiaryDetails) {
@@ -255,7 +256,7 @@ export const disbursePage = catchAsyncError(async (req, res, next) => {
     }
 
     // Fetch beneficiaries
-    const beneficiariesList = await beneficiarDetails.find({
+    const beneficiariesList = await beneficiaryDetails.find({
       khatauniId: khatauniDetailsData[0]._id,
     });
 
@@ -266,7 +267,7 @@ export const disbursePage = catchAsyncError(async (req, res, next) => {
     const beneficiariesData = await Promise.all(
       beneficiaryIds.map(async (beneficiaryId) => {
         // First, fetch beneficiarySelfDetails
-        const beneficiarySelfDetails = await beneficiarDetails.findOne({
+        const beneficiarySelfDetails = await beneficiaryDetails.findOne({
           _id: beneficiaryId,
         });
 
@@ -423,7 +424,7 @@ export const getAllBeneficiaries = async (req, res) => {
     }
 
     // Fetch beneficiaries based on villageId
-    const beneficiaries = await beneficiarDetails
+    const beneficiaries = await beneficiaryDetails
       .find({ villageId })
       .populate(
         "khatauniId",
@@ -540,13 +541,13 @@ export const getKhatauniDetails = async (req, res) => {
       .populate("landPriceId", "landPricePerSqMtr")
       .populate("villageId", "interestDays")
       .select(
-        "landPriceId villageId totalAcquiredBhumi khatauniSankhya bhumiCompensation gairFaldaarBhumiCompensation faldaarBhumiCompensation makaanCompensation"
+        "landPriceId villageId isDisbursementSubmitted totalAcquiredBhumi khatauniSankhya bhumiCompensation gairFaldaarBhumiCompensation faldaarBhumiCompensation makaanCompensation"
       );
     if (!khatauniDetailsData.length) {
       return next(new ErrorHandler("Invalid khatauni sankhya", 404));
     }
     // Fetch beneficiaries
-    const beneficiaries = await beneficiarDetails
+    const beneficiaries = await beneficiaryDetails
       .find({
         khatauniId: khatauniDetailsData[0]._id,
       })
@@ -809,10 +810,11 @@ export const verifyBeneficiaryDetails = catchAsyncError(
       }
 
       if (status === "3") {
-        // Fetch beneficiary disbursement details
-        let disbursementDetails = await beneficiarDisbursementDetails.findOne({
-          beneficiaryId,
-        });
+        // Fetch beneficiary details
+        let disbursementDetails = await beneficiaryDetails.findById(
+          beneficiaryId
+        );
+
         disbursementDetails.isDisbursementUploaded = "0";
         await disbursementDetails.save();
       }
@@ -1008,7 +1010,7 @@ export const verifyBeneficiaryDetails = catchAsyncError(
 export const getAllBeneficiariesPaymentStatus = async (req, res) => {
   try {
     // Fetch beneficiaries based on villageId
-    const beneficiaries = await beneficiarDetails
+    const beneficiaries = await beneficiaryDetails
       .find()
       .populate(
         "khatauniId",
@@ -1087,7 +1089,9 @@ export const addLegalHeir = async (req, res) => {
 
   try {
     // Fetch the data of the original beneficiary using beneficiaryId
-    const existingBeneficiary = await beneficiarDetails.findById(beneficiaryId);
+    const existingBeneficiary = await beneficiaryDetails.findById(
+      beneficiaryId
+    );
     if (!existingBeneficiary) {
       return res
         .status(404)
@@ -1138,7 +1142,7 @@ export const addLegalHeir = async (req, res) => {
       const newSerialNumber = `${existingBeneficiary?.serialNumber}.${
         index + 1
       }`;
-      const newBeneficiary = new beneficiarDetails({
+      const newBeneficiary = new beneficiaryDetails({
         beneficiaryName: beneficiary.name,
         beneficiaryStatus: "active",
         serialNumber: newSerialNumber,
@@ -1200,7 +1204,7 @@ export const addLegalHeir = async (req, res) => {
 
     // Update the village collection with the new total beneficiary count
     const villageId = existingBeneficiary.villageId;
-    const totalBeneficiaries = await beneficiarDetails.countDocuments({
+    const totalBeneficiaries = await beneficiaryDetails.countDocuments({
       villageId,
     });
     await villageSchema.findOneAndUpdate(

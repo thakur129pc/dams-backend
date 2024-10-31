@@ -29,6 +29,7 @@ const khatauniDetailsSchema = new mongoose.Schema({
     },
   },
   isAllDocumentSubmitted: { type: String, enum: ["0", "1"], default: "0" }, // Default to "0"
+  isDisbursementSubmitted: { type: String, enum: ["0", "1"], default: "0" }, // Default to "0"
   bhumiCompensation: { type: String, default: 0 },
   gairFaldaarBhumiCompensation: { type: String, default: 0 },
   faldaarBhumiCompensation: { type: String, default: 0 },
