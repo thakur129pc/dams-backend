@@ -143,10 +143,10 @@ export const createDisbursementDetails = async (req, res) => {
     const disbursementDetailsArray = await Promise.all(
       beneficiaries.map(async (beneficiary) => {
         // Fetch villageId from beneficiarDetailsSchema using beneficiaryId
-        const beneficiaryDetails = await beneficiaryDetails
+        const beneficiaryDetail = await beneficiaryDetails
           .findById(beneficiary.beneficiaryId)
           .select("villageId isDisbursementUploaded");
-        if (!beneficiaryDetails) {
+        if (!beneficiaryDetail) {
           throw new Error(
             `Beneficiary with ID ${beneficiary.beneficiaryId} not found`
           );
@@ -175,7 +175,7 @@ export const createDisbursementDetails = async (req, res) => {
           disbursementDetails.isRejected = beneficiary.isRejected || "0";
           disbursementDetails.rejectedMessage =
             beneficiary.rejectedMessage || "";
-          disbursementDetails.villageId = beneficiaryDetails.villageId;
+          disbursementDetails.villageId = beneficiaryDetail.villageId;
           disbursementDetails.userId = userId;
 
           // Save the updated disbursement details
@@ -198,7 +198,7 @@ export const createDisbursementDetails = async (req, res) => {
             isRejected: beneficiary.isRejected || "0",
             rejectedMessage: beneficiary.rejectedMessage || "",
             beneficiaryId: beneficiary.beneficiaryId,
-            villageId: beneficiaryDetails.villageId,
+            villageId: beneficiaryDetail.villageId,
             userId: userId,
           });
 
@@ -207,9 +207,9 @@ export const createDisbursementDetails = async (req, res) => {
         }
 
         // After saving/updating disbursement details, ensure `isDisbursementUploaded` is updated to 1
-        if (beneficiaryDetails.isDisbursementUploaded !== "1") {
-          beneficiaryDetails.isDisbursementUploaded = "1";
-          await beneficiaryDetails.save(); // Save the beneficiary record with updated isDisbursementUploaded
+        if (beneficiaryDetail.isDisbursementUploaded !== "1") {
+          beneficiaryDetail.isDisbursementUploaded = "1";
+          await beneficiaryDetail.save(); // Save the beneficiary record with updated isDisbursementUploaded
         }
 
         return disbursementDetails;
