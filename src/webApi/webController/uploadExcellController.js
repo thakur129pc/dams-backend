@@ -165,44 +165,62 @@ export const uploadExcel = async (req, res) => {
         });
         let khatauniId = null;
 
+        // Function to clean and sanitize cell data
+        function cleanCellData(cell) {
+          if (!cell || !cell.value) return "";
+
+          const value = Array.isArray(cell.value)
+            ? cell.value.map((item) => item.toString().trim()).join(", ")
+            : cell.value.toString();
+
+          const cleanedValue = value
+            .split(/\n|\r/)
+            .map((item) => item.trim())
+            .filter((item) => item.length > 0)
+            .join(", ");
+
+          return cleanedValue.replace(/\s+/g, " ").trim();
+        }
+
+        function extractRichText(cell) {
+          if (!cell) return "";
+
+          if (cell.richText && Array.isArray(cell.richText)) {
+            return cell.richText
+              .map((segment) => segment.text)
+              .join(", ")
+              .trim();
+          } else if (cell.value) {
+            return sanitize(cell.value.toString().trim());
+          } else {
+            return "";
+          }
+        }
+
         if (!existingKhatauniDetails) {
+          const rawAcquiredKhasraNumber = extractRichText(row.getCell("F"));
+
+          const toString = (value) => {
+            if (value && typeof value === "object" && value.text) {
+              return value.text;
+            }
+            return String(value);
+          };
+
+          let acquiredKhasraNumber = toString(rawAcquiredKhasraNumber);
+
+          acquiredKhasraNumber = acquiredKhasraNumber
+            .replace(/\s+/g, " ")
+            .trim();
+
+          acquiredKhasraNumber = sanitize(acquiredKhasraNumber);
+
           const newKhatauni = await KhatauniDetails.create({
-            khatauniSankhya,
-            khasraNumber: sanitize(
-              (Array.isArray(row.getCell("D").value)
-                ? row.getCell("D").value.join(", ")
-                : row.getCell("D").value?.toString() || ""
-              )
-                .replace(/\s+/g, " ")
-                .replace(/\n|\r/g, " ")
-            ),
-            acquiredKhasraNumber: sanitize(
-              (Array.isArray(row.getCell("F").value)
-                ? row
-                    .getCell("F")
-                    .value.map((item) => item.toString())
-                    .join(", ")
-                : row.getCell("F").value?.toString() || ""
-              )
-                .replace(/\s+/g, " ")
-                .replace(/\n|\r/g, " ")
-            ),
-            areaVariety: sanitize(
-              (Array.isArray(row.getCell("E").value)
-                ? row.getCell("E").value.join(", ")
-                : row.getCell("E").value?.toString() || ""
-              )
-                .replace(/\s+/g, " ")
-                .replace(/\n|\r/g, " ")
-            ),
-            acquiredRakbha: sanitize(
-              (Array.isArray(row.getCell("G").value)
-                ? row.getCell("G").value.join(", ")
-                : row.getCell("G").value?.toString() || ""
-              )
-                .replace(/\s+/g, " ")
-                .replace(/\n|\r/g, " ")
-            ),
+            khatauniSankhya: sanitize(khatauniSankhya),
+            khasraNumber: sanitize(cleanCellData(row.getCell("D"))),
+            acquiredKhasraNumber: acquiredKhasraNumber,
+            areaVariety: sanitize(cleanCellData(row.getCell("E"))),
+            acquiredRakbha: sanitize(cleanCellData(row.getCell("G"))),
             update: { userId, updatedAt: new Date(), action: "0" },
             villageId: sanitizedVillageId,
           });
@@ -247,11 +265,9 @@ export const uploadExcel = async (req, res) => {
         function extractText(richText) {
           const extractedText = richText
             .map((item) => {
-              // Extract the text from each item and clean it up
-              const match = item.text.match(/"text":"(.*?)"/);
-              return match ? match[1] : ""; // Return the matched text or an empty string
+              return customSanitize(item.text);
             })
-            .filter((text) => text.trim() !== "") // Filter out any empty strings
+            .filter((text) => text.trim() !== "")
             .join(" ");
           return extractedText;
         }
@@ -280,7 +296,7 @@ export const uploadExcel = async (req, res) => {
             String(customSanitize(getCellValue(row.getCell("R").value))) || "0",
           totalCompensation:
             Number(customSanitize(getCellValue(row.getCell("S").value))) || 0,
-          vivran: extractedVivranText, // yaha vivran aayega after removing all the special n hidden chars.
+          vivran: extractedVivranText, // vivran field with sanitized text
           isDisbursementUploaded: "0",
           isConsent: "0",
           isApproved: "0",
