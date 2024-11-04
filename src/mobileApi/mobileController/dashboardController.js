@@ -134,6 +134,14 @@ export const getVillageDetails = catchAsyncError(async (req, res, next) => {
     }
 });
 
+
+
+
+
+
+
+
+
 // DONT TOUCH MY CODE*// fully updated 
 export const getBeneficiariesByKhatauniSankhya = catchAsyncError(async (req, res, next) => {
     try {
@@ -226,11 +234,15 @@ export const getBeneficiariesByKhatauniSankhya = catchAsyncError(async (req, res
         next(error);
     }
 });
-// upload-docs
+
+
+
+// upload docs
 export const uploadDocs = async (req, res) => {
     try {
         let { beneficiaries, khatauniSankhya } = req.body;
         const files = req.files;
+
         // Parse beneficiaries if it's a string
         if (typeof beneficiaries === 'string') {
             beneficiaries = JSON.parse(beneficiaries);
@@ -242,27 +254,32 @@ export const uploadDocs = async (req, res) => {
         if (!beneficiaries.length || !khatauniSankhya) {
             return res.status(400).json({ status: false, message: 'Required fields are missing.' });
         }
+
         const requiredFields = [
             'accountNumber', 'ifscCode', 'aadhaarNumber', 'panCardNumber', 'photo',
             'landIndemnityBond', 'structureIndemnityBond', 'uploadAffidavit',
             'aadhaarCard', 'panCard', 'chequeOrPassbook'
         ];
+
         const extractFileName = (field, index) => {
             const key = `beneficiaries[${index}][${field}]`;
             const file = files[key];
             return file && file[0] ? file[0].filename : '';
         };
+
         // First pass: Process each beneficiary and update document details
         const processedBeneficiaries = await Promise.all(
             beneficiaries.map(async (beneficiary, index) => {
                 const beneficiaryName = Array.isArray(beneficiary.beneficiaryName)
                     ? beneficiary.beneficiaryName.join(', ')
                     : beneficiary.beneficiaryName || '';
+
                 // Fetch existing document if available
                 let existingDoc = await beneficiaryDocs.findOne({
                     beneficiaryId: beneficiary.beneficiaryId,
                     khatauniSankhya: khatauniSankhya
                 });
+
                 // Create or update document data by keeping existing files where no new file is uploaded
                 const beneficiaryData = {
                     beneficiaryId: beneficiary.beneficiaryId ? new mongoose.Types.ObjectId(beneficiary.beneficiaryId) : null,
@@ -283,15 +300,18 @@ export const uploadDocs = async (req, res) => {
                     chequeOrPassbook: extractFileName('chequeOrPassbook', index) || (existingDoc ? existingDoc.chequeOrPassbook : ''),
                     khatauniSankhya: khatauniSankhya
                 };
+
                 // Upsert document data (insert if doesn't exist, otherwise update)
                 const beneficiaryDoc = await beneficiaryDocs.findOneAndUpdate(
                     { beneficiaryId: beneficiaryData.beneficiaryId, beneficiaryName, khatauniSankhya },
                     beneficiaryData,
                     { new: true, upsert: true }
                 );
+
                 return beneficiaryDoc;
             })
         );
+
         // Second pass: Update documentUploadedEach and isDocumentUploaded based on uploaded documents
         const updatedBeneficiaries = await Promise.all(
             processedBeneficiaries.map(async (beneficiaryDoc) => {
@@ -300,8 +320,10 @@ export const uploadDocs = async (req, res) => {
                     field => beneficiaryDoc[field] && beneficiaryDoc[field].trim() !== ''
                 );
                 beneficiaryDoc.documentUploadedEach = allDocsUploaded ? 'completed' : 'incomplete';
+
                 // Save document with updated status
                 await beneficiaryDoc.save();
+
                 // Update isDocumentUploaded in beneficiarDetails if all documents are uploaded and consents are true
                 if (beneficiaryDoc.documentUploadedEach === 'completed' &&
                     beneficiaryDoc.isConsent1 && beneficiaryDoc.isConsent2) {
@@ -311,9 +333,11 @@ export const uploadDocs = async (req, res) => {
                         { new: true }
                     );
                 }
+
                 return beneficiaryDoc;
             })
         );
+
         // Update submissionStatus for all beneficiaries with the same khatauniSankhya
         const allDocsFilledForAllBeneficiaries = updatedBeneficiaries.every(
             beneficiary => beneficiary.documentUploadedEach === 'completed'
@@ -323,6 +347,7 @@ export const uploadDocs = async (req, res) => {
             { khatauniSankhya },
             { $set: { submissionStatus } }
         );
+
         res.status(200).json({
             status: true,
             message: 'Documents and beneficiary details uploaded successfully',
