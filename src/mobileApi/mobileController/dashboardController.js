@@ -89,10 +89,6 @@ export const getVillageDetails = catchAsyncError(async (req, res, next) => {
         let documentStatus = "Not Started";
         let documentColor = "#808080";
 
-        // Debugging logs to check values
-        console.log(`Checking documents for beneficiary: ${beneficiaryName}`);
-        console.log(`Found document detail: `, docDetail);
-
         if (docDetail) {
           const documentUploadedEach = docDetail.documentUploadedEach; // Fetching the specific key value
 
@@ -154,7 +150,6 @@ export const getBeneficiariesByKhatauniSankhya = catchAsyncError(
   async (req, res, next) => {
     try {
       const { khatauniSankhya } = req.query;
-      console.log("Query Parameters:", { khatauniSankhya });
 
       // Validate query parameters
       if (!khatauniSankhya) {
