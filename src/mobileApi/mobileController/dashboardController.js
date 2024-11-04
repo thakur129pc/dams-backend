@@ -134,14 +134,6 @@ export const getVillageDetails = catchAsyncError(async (req, res, next) => {
     }
 });
 
-
-
-
-
-
-
-
-
 // DONT TOUCH MY CODE*// fully updated 
 export const getBeneficiariesByKhatauniSankhya = catchAsyncError(async (req, res, next) => {
     try {
@@ -234,195 +226,16 @@ export const getBeneficiariesByKhatauniSankhya = catchAsyncError(async (req, res
         next(error);
     }
 });
-
-
-
-
-// DONT TOUCH MY CODE*//
-// export const uploadDocs = async (req, res) => {
-//     try {
-//         let { beneficiaries, khatauniSankhya } = req.body;
-//         const files = req.files;
-
-//         // Parse beneficiaries if it's a string
-//         if (typeof beneficiaries === 'string') {
-//             beneficiaries = JSON.parse(beneficiaries);
-//         }
-
-//         // Check if beneficiaries is an array
-//         if (!Array.isArray(beneficiaries)) {
-//             return res.json({
-//                 status: false,
-//                 message: 'Beneficiaries should be an array.',
-//             });
-//         }
-
-//         // Validate required fields
-//         if (!beneficiaries.length || !khatauniSankhya) {
-//             return res.json({
-//                 status: false,
-//                 message: 'Required fields are missing.',
-//             });
-//         }
-
-//         const requiredFields = [
-//             'accountNumber', 'ifscCode', 'aadhaarNumber', 'panCardNumber', 'photo',
-//             'landIndemnityBond', 'structureIndemnityBond', 'uploadAffidavit',
-//             'aadhaarCard', 'panCard', 'chequeOrPassbook',
-//         ];
-
-//         // Extract file name based on the field and index of beneficiary
-//         const extractFileName = (field, index) => {
-//             const key = `beneficiaries[${index}][${field}]`;
-//             const file = files[key];
-//             return file && file[0]?.filename
-//                 ? `${field}-${file[0].filename.split('-').pop()}`
-//                 : '';
-//         };
-
-//         // Process beneficiaries and handle document upload
-//         const processedBeneficiaries = beneficiaries.map((beneficiary, index) => {
-//             // Ensure beneficiaryName is a string
-//             const beneficiaryName = Array.isArray(beneficiary.beneficiaryName)
-//                 ? beneficiary.beneficiaryName.join(', ') // Join if it's an array
-//                 : beneficiary.beneficiaryName || ''; // Default to empty string if undefined
-
-//             const hasDocumentSubmitted = requiredFields.some(field => files[`beneficiaries[${index}][${field}]`] && files[`beneficiaries[${index}][${field}]`][0]?.filename);
-
-//             // Validate consents before proceeding
-//             if (hasDocumentSubmitted && (beneficiary.isConsent1 !== 'true' || beneficiary.isConsent2 !== 'true')) {
-//                 throw new Error(`Both consents must be "true" for beneficiary: ${beneficiaryName}`);
-//             }
-
-//             // Construct the beneficiary object with extracted file names
-//             return {
-//                 beneficiaryId: beneficiary.beneficiaryId ? new mongoose.Types.ObjectId(beneficiary.beneficiaryId) : null,
-//                 beneficiaryName,
-//                 accountNumber: beneficiary.accountNumber || '',
-//                 ifscCode: beneficiary.ifscCode || '',
-//                 aadhaarNumber: beneficiary.aadhaarNumber || '',
-//                 panCardNumber: beneficiary.panCardNumber || '',
-//                 remarks: beneficiary.remarks || '',
-//                 isConsent1: beneficiary.isConsent1 === 'true',
-//                 isConsent2: beneficiary.isConsent2 === 'true',
-//                 photo: extractFileName('photo', index),
-//                 landIndemnityBond: extractFileName('landIndemnityBond', index),
-//                 structureIndemnityBond: extractFileName('structureIndemnityBond', index),
-//                 uploadAffidavit: extractFileName('uploadAffidavit', index),
-//                 aadhaarCard: extractFileName('aadhaarCard', index),
-//                 panCard: extractFileName('panCard', index),
-//                 chequeOrPassbook: extractFileName('chequeOrPassbook', index),
-//                 khatauniSankhya: khatauniSankhya || '', // Ensure khatauniSankhya is included
-//                 documentUploadedEach: '', // Will be updated later based on conditions
-//             };
-//         });
-
-//         // Check if at least one document or detail is filled for any beneficiary
-//         const hasAtLeastOneField = processedBeneficiaries.some(beneficiary =>
-//             requiredFields.some(field => beneficiary[field] && beneficiary[field].trim() !== '') ||
-//             beneficiary.accountNumber || beneficiary.ifscCode ||
-//             beneficiary.aadhaarNumber || beneficiary.panCardNumber
-//         );
-
-//         if (!hasAtLeastOneField) {
-//             return res.json({
-//                 status: false,
-//                 message: 'Please fill at least one document or detail for any beneficiary.',
-//             });
-//         }
-
-//         // Determine if all documents are filled for all beneficiaries
-//         const allDocsFilledForAllBeneficiaries = processedBeneficiaries.every(beneficiary =>
-//             requiredFields.every(field => beneficiary[field] && beneficiary[field].trim() !== '')
-//         );
-
-//         // Initialize submissionStatus
-//         const submissionStatus = allDocsFilledForAllBeneficiaries ? 'Completed' : 'Partial';
-
-//         for (const beneficiary of processedBeneficiaries) {
-//             // Check if all required documents are filled for each beneficiary
-//             const allDocsUploadedForBeneficiary = requiredFields.every(field =>
-//                 beneficiary[field] && typeof beneficiary[field] === 'string' && beneficiary[field].trim() !== ''
-//             );
-
-//             beneficiary.documentUploadedEach = allDocsUploadedForBeneficiary ? 'completed' : 'incomplete';
-
-//             // Find or create the beneficiary document in the collection
-//             let beneficiaryDoc = await beneficiaryDocs.findOne({
-//                 beneficiaryId: beneficiary.beneficiaryId,
-//                 beneficiaryName: beneficiary.beneficiaryName,
-//                 khatauniSankhya: beneficiary.khatauniSankhya,
-//             });
-
-//             if (beneficiaryDoc) {
-//                 // Update existing document only with non-empty fields
-//                 Object.keys(beneficiary).forEach(key => {
-//                     const value = beneficiary[key];
-//                     if ((typeof value === 'string' && value.trim() !== '') || typeof value !== 'string') {
-//                         beneficiaryDoc[key] = value;  // Only update if new value is not empty and different
-//                     }
-//                 });
-//                 beneficiaryDoc.submissionStatus = submissionStatus; // Add submissionStatus to each beneficiary doc
-
-//                 // Update isDocumentUploaded in beneficiaryDetails if all documents are uploaded for this beneficiary
-//                 if (beneficiary.documentUploadedEach === 'completed') {
-//                     console.log("Updating isDocumentUploaded for beneficiary:", beneficiary.beneficiaryId);
-//                     await beneficiarDetails.findOneAndUpdate(
-//                         { _id: beneficiary.beneficiaryId },
-//                         { $set: { isDocumentUploaded: "1" } },
-//                         { new: true, upsert: true } // Upsert in case the document doesn't exist
-//                     );
-//                 }
-//             } else {
-//                 // Create new document
-//                 beneficiaryDoc = new beneficiaryDocs({ ...beneficiary, submissionStatus });
-
-//                 // Set isDocumentUploaded to "1" if documents are uploaded
-//                 if (beneficiary.documentUploadedEach === 'completed') {
-//                     console.log("Creating and updating isDocumentUploaded for beneficiary:", beneficiary.beneficiaryId);
-//                     await beneficiarDetails.findOneAndUpdate(
-//                         { beneficiaryId: beneficiary.beneficiaryId },
-//                         { $set: { isDocumentUploaded: "1" } },
-//                         { new: true, upsert: true } // Upsert in case the document doesn't exist
-//                     );
-//                 }
-//             }
-//             // Save the updated/new beneficiary document
-//             await beneficiaryDoc.save();
-//         }
-
-
-//         // Update the overall submission status for all documents under this khatauniSankhya
-//         await beneficiaryDocs.updateMany(
-//             { khatauniSankhya },
-//             { $set: { submissionStatus } }
-//         );
-
-//         // Return success response
-//         res.status(200).json({
-//             status: true,
-//             message: 'Documents and beneficiary details uploaded successfully',
-//             processedBeneficiaries
-//         });
-//     } catch (error) {
-//         console.error('Error uploading documents:', error);
-//         res.json({
-//             status: false,
-//             message: error.message || 'Error uploading documents',
-//         });
-//     }
-// };
-
-
-
-
+// upload-docs
 export const uploadDocs = async (req, res) => {
     try {
         let { beneficiaries, khatauniSankhya } = req.body;
         const files = req.files;
+        // Parse beneficiaries if it's a string
         if (typeof beneficiaries === 'string') {
             beneficiaries = JSON.parse(beneficiaries);
         }
+        // Validate beneficiaries array
         if (!Array.isArray(beneficiaries)) {
             return res.status(400).json({ status: false, message: 'Beneficiaries should be an array.' });
         }
@@ -439,89 +252,73 @@ export const uploadDocs = async (req, res) => {
             const file = files[key];
             return file && file[0] ? file[0].filename : '';
         };
-        const processedBeneficiaries = beneficiaries.map((beneficiary, index) => {
-            const beneficiaryName = Array.isArray(beneficiary.beneficiaryName)
-                ? beneficiary.beneficiaryName.join(', ')
-                : beneficiary.beneficiaryName || '';
-            const hasDocumentSubmitted = requiredFields.some(field =>
-                files[`beneficiaries[${index}]`] && files[`beneficiaries[${index}]`][0]?.filename
-            );
-            if (hasDocumentSubmitted && (beneficiary.isConsent1 !== 'true' || beneficiary.isConsent2 !== 'true')) {
-                throw new Error(`Both consents must be "true" for beneficiary: ${beneficiaryName}`);
-            }
-            return {
-                beneficiaryId: beneficiary.beneficiaryId ? new mongoose.Types.ObjectId(beneficiary.beneficiaryId) : null,
-                beneficiaryName,
-                accountNumber: beneficiary.accountNumber || '',
-                ifscCode: beneficiary.ifscCode || '',
-                aadhaarNumber: beneficiary.aadhaarNumber || '',
-                panCardNumber: beneficiary.panCardNumber || '',
-                remarks: beneficiary.remarks || '',
-                isConsent1: beneficiary.isConsent1 === 'true',
-                isConsent2: beneficiary.isConsent2 === 'true',
-                photo: extractFileName('photo', index),
-                landIndemnityBond: extractFileName('landIndemnityBond', index),
-                structureIndemnityBond: extractFileName('structureIndemnityBond', index),
-                uploadAffidavit: extractFileName('uploadAffidavit', index),
-                aadhaarCard: extractFileName('aadhaarCard', index),
-                panCard: extractFileName('panCard', index),
-                chequeOrPassbook: extractFileName('chequeOrPassbook', index),
-                khatauniSankhya: khatauniSankhya || '',
-                documentUploadedEach: ''
-            };
-        });
-        const hasAtLeastOneField = processedBeneficiaries.some(beneficiary =>
-            requiredFields.some(field => beneficiary[field] && beneficiary[field].trim() !== '') ||
-            beneficiary.accountNumber || beneficiary.ifscCode ||
-            beneficiary.aadhaarNumber || beneficiary.panCardNumber
+        // First pass: Process each beneficiary and update document details
+        const processedBeneficiaries = await Promise.all(
+            beneficiaries.map(async (beneficiary, index) => {
+                const beneficiaryName = Array.isArray(beneficiary.beneficiaryName)
+                    ? beneficiary.beneficiaryName.join(', ')
+                    : beneficiary.beneficiaryName || '';
+                // Fetch existing document if available
+                let existingDoc = await beneficiaryDocs.findOne({
+                    beneficiaryId: beneficiary.beneficiaryId,
+                    khatauniSankhya: khatauniSankhya
+                });
+                // Create or update document data by keeping existing files where no new file is uploaded
+                const beneficiaryData = {
+                    beneficiaryId: beneficiary.beneficiaryId ? new mongoose.Types.ObjectId(beneficiary.beneficiaryId) : null,
+                    beneficiaryName,
+                    accountNumber: beneficiary.accountNumber || (existingDoc ? existingDoc.accountNumber : ''),
+                    ifscCode: beneficiary.ifscCode || (existingDoc ? existingDoc.ifscCode : ''),
+                    aadhaarNumber: beneficiary.aadhaarNumber || (existingDoc ? existingDoc.aadhaarNumber : ''),
+                    panCardNumber: beneficiary.panCardNumber || (existingDoc ? existingDoc.panCardNumber : ''),
+                    remarks: beneficiary.remarks || (existingDoc ? existingDoc.remarks : ''),
+                    isConsent1: beneficiary.isConsent1 === 'true',
+                    isConsent2: beneficiary.isConsent2 === 'true',
+                    photo: extractFileName('photo', index) || (existingDoc ? existingDoc.photo : ''),
+                    landIndemnityBond: extractFileName('landIndemnityBond', index) || (existingDoc ? existingDoc.landIndemnityBond : ''),
+                    structureIndemnityBond: extractFileName('structureIndemnityBond', index) || (existingDoc ? existingDoc.structureIndemnityBond : ''),
+                    uploadAffidavit: extractFileName('uploadAffidavit', index) || (existingDoc ? existingDoc.uploadAffidavit : ''),
+                    aadhaarCard: extractFileName('aadhaarCard', index) || (existingDoc ? existingDoc.aadhaarCard : ''),
+                    panCard: extractFileName('panCard', index) || (existingDoc ? existingDoc.panCard : ''),
+                    chequeOrPassbook: extractFileName('chequeOrPassbook', index) || (existingDoc ? existingDoc.chequeOrPassbook : ''),
+                    khatauniSankhya: khatauniSankhya
+                };
+                // Upsert document data (insert if doesn't exist, otherwise update)
+                const beneficiaryDoc = await beneficiaryDocs.findOneAndUpdate(
+                    { beneficiaryId: beneficiaryData.beneficiaryId, beneficiaryName, khatauniSankhya },
+                    beneficiaryData,
+                    { new: true, upsert: true }
+                );
+                return beneficiaryDoc;
+            })
         );
-        if (!hasAtLeastOneField) {
-            return res.status(400).json({
-                status: false,
-                message: 'Please fill at least one document or detail for any beneficiary.'
-            });
-        }
-        const allDocsFilledForAllBeneficiaries = processedBeneficiaries.every(beneficiary =>
-            requiredFields.every(field => beneficiary[field] && beneficiary[field].trim() !== '')
+        // Second pass: Update documentUploadedEach and isDocumentUploaded based on uploaded documents
+        const updatedBeneficiaries = await Promise.all(
+            processedBeneficiaries.map(async (beneficiaryDoc) => {
+                // Check if all required docs are uploaded
+                const allDocsUploaded = requiredFields.every(
+                    field => beneficiaryDoc[field] && beneficiaryDoc[field].trim() !== ''
+                );
+                beneficiaryDoc.documentUploadedEach = allDocsUploaded ? 'completed' : 'incomplete';
+                // Save document with updated status
+                await beneficiaryDoc.save();
+                // Update isDocumentUploaded in beneficiarDetails if all documents are uploaded and consents are true
+                if (beneficiaryDoc.documentUploadedEach === 'completed' &&
+                    beneficiaryDoc.isConsent1 && beneficiaryDoc.isConsent2) {
+                    await beneficiarDetails.findOneAndUpdate(
+                        { _id: beneficiaryDoc.beneficiaryId },
+                        { $set: { isDocumentUploaded: "1" } },
+                        { new: true }
+                    );
+                }
+                return beneficiaryDoc;
+            })
+        );
+        // Update submissionStatus for all beneficiaries with the same khatauniSankhya
+        const allDocsFilledForAllBeneficiaries = updatedBeneficiaries.every(
+            beneficiary => beneficiary.documentUploadedEach === 'completed'
         );
         const submissionStatus = allDocsFilledForAllBeneficiaries ? 'Completed' : 'Partial';
-        for (const beneficiary of processedBeneficiaries) {
-            const allDocsUploadedForBeneficiary = requiredFields.every(field =>
-                beneficiary[field] && typeof beneficiary[field] === 'string' && beneficiary[field].trim() !== ''
-            );
-            beneficiary.documentUploadedEach = allDocsUploadedForBeneficiary ? 'completed' : 'incomplete';
-            let beneficiaryDoc = await beneficiaryDocs.findOne({
-                beneficiaryId: beneficiary.beneficiaryId,
-                beneficiaryName: beneficiary.beneficiaryName,
-                khatauniSankhya: beneficiary.khatauniSankhya,
-            });
-            if (beneficiaryDoc) {
-                Object.keys(beneficiary).forEach(key => {
-                    const value = beneficiary[key];
-                    if ((typeof value === 'string' && value.trim() !== '') || typeof value !== 'string') {
-                        beneficiaryDoc[key] = value;
-                    }
-                });
-                beneficiaryDoc.submissionStatus = submissionStatus;
-                if (beneficiary.documentUploadedEach === 'completed') {
-                    await beneficiarDetails.findOneAndUpdate(
-                        { _id: beneficiary.beneficiaryId },
-                        { $set: { isDocumentUploaded: "1" } },
-                        { new: true, upsert: true }
-                    );
-                }
-            } else {
-                beneficiaryDoc = new beneficiaryDocs({ ...beneficiary, submissionStatus });
-                if (beneficiary.documentUploadedEach === 'completed') {
-                    await beneficiarDetails.findOneAndUpdate(
-                        { _id: beneficiary.beneficiaryId },
-                        { $set: { isDocumentUploaded: "1" } },
-                        { new: true, upsert: true }
-                    );
-                }
-            }
-            await beneficiaryDoc.save();
-        }
         await beneficiaryDocs.updateMany(
             { khatauniSankhya },
             { $set: { submissionStatus } }
@@ -529,7 +326,7 @@ export const uploadDocs = async (req, res) => {
         res.status(200).json({
             status: true,
             message: 'Documents and beneficiary details uploaded successfully',
-            processedBeneficiaries
+            processedBeneficiaries: updatedBeneficiaries
         });
     } catch (error) {
         console.error('Error uploading documents:', error);

@@ -1,4 +1,4 @@
-import { boolean, required } from 'joi';
+import { boolean, number, required } from 'joi';
 import mongoose from 'mongoose';
 
 const beneficiaryDisbursementDetailsSchema = new mongoose.Schema({
@@ -15,7 +15,7 @@ const beneficiaryDisbursementDetailsSchema = new mongoose.Schema({
        re:'beneficiaryDetails'
     },
     bhumiPrice:{
-        type:number,
+        type:Number,
         required:true
     },
     villageId:{
@@ -23,7 +23,7 @@ const beneficiaryDisbursementDetailsSchema = new mongoose.Schema({
         ref:'villageDetails'
     },
     falldaarBhumiPrice:{
-        type:number,
+        type:Number,
         required:true,
     },
     dispute:[{

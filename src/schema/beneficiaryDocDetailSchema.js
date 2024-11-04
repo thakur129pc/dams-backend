@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 const beneficiarySchema = new mongoose.Schema({
   beneficiaryId: { type: mongoose.Schema.Types.ObjectId, required: false },
+  khatauniSankhya: { type: String, required: false },
   beneficiaryName: { type: String, required: false },
   accountNumber: {
     type: String,
@@ -9,11 +10,13 @@ const beneficiarySchema = new mongoose.Schema({
   confirmAccountNumber: {
     type: String,
     required: false,
+
   },
   ifscCode: { type: String, required: false },
   aadhaarNumber: {
     type: String,
     required: false,
+
   },
   panCardNumber: {
     type: String,
@@ -21,15 +24,22 @@ const beneficiarySchema = new mongoose.Schema({
   },
   documentUploadedEach: {
     type: String,
-    required:false,
+    required: false,
     enum: ['completed', 'incomplete']
   },
+  // documentColor: {
+  //   type: String
+  // },
+  // statusColor: {
+  //   type: String
+  // },
   submissionStatus: {
     type: String,
     enum: ['Completed', 'Partial']
   },
   remarks: { type: String },
-  isConsent: { type: Boolean },
+  isConsent1: { type: String },
+  isConsent2:{type: String},
   photo: { type: String },
   landIndemnityBond: { type: String },
   structureIndemnityBond: { type: String },
@@ -37,5 +47,6 @@ const beneficiarySchema = new mongoose.Schema({
   aadhaarCard: { type: String },
   panCard: { type: String },
   chequeOrPassbook: { type: String }
-}, { timestamps: false });
+}, { timestamps: true });
+
 export default mongoose.model('BeneficiaryDocs', beneficiarySchema);
